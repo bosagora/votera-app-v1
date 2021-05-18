@@ -1,0 +1,92 @@
+query GetMemberRoles($sort: String, $limit: Int, $start: Int, $where: JSON) {
+    memberRolesConnection(sort: $sort, limit: $limit, start: $start, where: $where) {
+        aggregate {
+            count
+        }
+        values {
+            proposal {
+                ...ProposalItem
+            }
+        }
+    }
+}
+# query GetMemberRolesConnection ($where: JSON) {
+#     memberRolesConnection(where: $where) {
+#         aggregate {
+#             count
+#         }
+#     }
+# }
+
+mutation CreateValidatorUser($input: createValidatorUserInput) {
+    createValidatorUser(input: $input) {
+        user {
+            id
+            email
+            username
+            members {
+                id
+                address
+                username
+            }
+        }
+    }
+}
+
+mutation RecoverValidatorUser($input: recoverValidatorUserInput) {
+    recoverValidatorUser(input: $input) {
+        user {
+            id
+            email
+            username
+            members {
+                id
+                address
+                username
+            }
+        }
+    }
+}
+
+query CheckUsername($username: String!) {
+    checkDupUserName(username: $username) {
+        username
+        duplicated
+    }
+}
+
+mutation CreateMember($input: createMemberInput) {
+    createMember(input: $input) {
+        member {
+            id
+        }
+    }
+}
+
+mutation UpdateMember($input: updateMemberInput) {
+    updateMember(input: $input) {
+        member {
+            id
+        }
+    }
+}
+
+mutation DeleteMember($input: deleteMemberInput) {
+    deleteMember(input: $input) {
+        member {
+            id
+        }
+    }
+}
+
+query MyMembers {
+    myMembers {
+        id
+        username
+        members {
+            id
+            username
+            address
+        }
+    }
+}

@@ -1,0 +1,17 @@
+mutation createPush($input: createPushInput) {
+    createPush(input: $input) {
+        push {
+            id
+            token
+        }
+    }
+}
+
+mutation updatePush($input: updatePushInput) {
+    updatePush(input: $input) {
+        push {
+            id
+            token
+        }
+    }
+}

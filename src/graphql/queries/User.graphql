@@ -1,0 +1,17 @@
+mutation login($input: UsersPermissionsLoginInput!) {
+    login(input: $input) {
+        jwt
+        user {
+            id
+            username
+        }
+    }
+}
+
+mutation updateUser($input: updateUserInput) {
+    updateUser(input: $input) {
+        user {
+            id
+        }
+    }
+}

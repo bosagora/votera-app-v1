@@ -1,0 +1,51 @@
+fragment NotificationType on Feeds {
+    id
+    rejectId
+    target
+    type
+    content {
+        version
+        userName
+        activityName
+        groupName
+        proposalTitle
+        questionTitle
+        comment
+    }
+    navigation {
+        proposalId
+        groupId
+        memberId
+        activityId
+        activityType
+        postId
+        status
+    }
+    timestamp
+    isRead
+    createdAt
+}
+
+query getFeeds($sort: String, $limit: Int, $start: Int, $where: JSON) {
+    feeds(sort: $sort, limit: $limit, start: $start, where: $where) {
+        ...NotificationType
+    }
+}
+
+query GetFeedsConnection($where: JSON) {
+    feedsConnection(where: $where) {
+        aggregate {
+            count
+            totalCount
+        }
+    }
+}
+
+# exam updateNotificationInput { where: {id: "string"}, data: {isRead: true}}
+mutation updateFeed($input: updateFeedInput) {
+    updateFeed(input: $input) {
+        feed {
+            ...NotificationType
+        }
+    }
+}

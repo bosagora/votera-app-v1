@@ -1,0 +1,38 @@
+mutation CreatePost($input: createPostInput) {
+    createPost(input: $input) {
+        post {
+            ...PostItem
+        }
+    }
+}
+
+mutation updatePost($input: updatePostInput) {
+    updatePost(input: $input) {
+        post {
+            id
+        }
+    }
+}
+
+query getPosts($where: JSON, $sort: String, $limit: Int) {
+    posts(where: $where, sort: $sort, limit: $limit) @connection(key: "Proposal", filter: ["where"]) {
+        ...PostItem
+    }
+}
+
+query getCommentPosts($where: JSON, $sort: String, $limit: Int, $start: Int) {
+    listPosts(where: $where, sort: $sort, limit: $limit, start: $start) @connection(key: "Proposal", filter: ["where"]) {
+        ...PostItem
+    }
+}
+
+query getSummarize($id: ID) {
+    summarize(id: $id) {
+        data {
+            question {
+                ...QuestionItem
+            }
+            response
+        }
+    }
+}

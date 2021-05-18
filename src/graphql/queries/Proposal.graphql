@@ -1,0 +1,81 @@
+directive @connection(key: String!, filter: [String]) on FIELD
+
+mutation CreateProposal($input: createProposalInput) {
+    createProposal(input: $input) {
+        proposal {
+            ...ProposalItem
+        }
+    }
+}
+query getProposal($id: ID!) {
+    proposal(id: $id) {
+        ...ProposalItem
+    }
+}
+query getProposalById($proposalId: String!) {
+    proposalById(proposalId: $proposalId) {
+        ...ProposalItem
+    }
+    reportedPosts(proposalId: $proposalId)
+}
+
+query getProposals($sort: String, $limit: Int, $start: Int, $where: JSON) {
+    proposals(sort: $sort, limit: $limit, start: $start, where: $where)
+        @connection(key: "Proposal", filter: ["where"]) {
+        ...ProposalItem
+    }
+}
+
+query getProposalsConnection($sort: String, $limit: Int, $start: Int, $where: JSON) {
+    proposalsConnection(sort: $sort, limit: $limit, start: $start, where: $where) {
+        aggregate {
+            count
+        }
+        values {
+            ...ProposalItem
+        }
+    }
+}
+
+query getProposalFee($id: ID!) {
+    proposalFee(id: $id) {
+        status
+        proposer_address
+        destination
+        amount
+    }
+}
+
+query getVoteFee($id: ID!) {
+    voteFee(id: $id) {
+        status
+        proposal {
+            id
+            proposalId
+            name
+            description
+            type
+            status
+            fundingAmount
+            proposer_address
+            proposal_fee_address
+            proposal_fee
+            tx_hash_proposal_fee
+            vote_start_height
+            vote_end_height
+            doc_hash
+            vote_fee
+            tx_hash_vote_fee
+            validators
+        }
+    }
+}
+
+mutation joinProposal($input: joinProposalInput!) {
+    joinProposal(input: $input) {
+        invalidVoterCard
+        proposal {
+            id
+        }
+    }
+}
