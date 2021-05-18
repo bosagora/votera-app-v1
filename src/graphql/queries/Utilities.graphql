@@ -1,0 +1,18 @@
+mutation UploadFile($file: Upload!) {
+    upload(file: $file) {
+        id
+    }
+}
+
+query VoteraConfiguration {
+    version {
+        ios
+        android
+    }
+    agora {
+        ProposalFeeRatio
+        userServiceTermUrl
+        privacyTermUrl
+        voteResultUrl
+    }
+}

@@ -1,0 +1,30 @@
+mutation createInteraction($input: createInteractionInput) {
+    createInteraction(input: $input) {
+        interaction {
+            ...InteractionItem
+        }
+    }
+}
+
+query getInteractions($where: JSON) {
+    interactions(where: $where) {
+        ...InteractionItem
+    }
+}
+
+mutation toggleLike($input: toggleLikeInput) {
+    toggleLike(input: $input) {
+        isLike
+        interaction {
+            ...InteractionItem
+        }
+    }
+}
+
+mutation reportPost($input: reportPostInput) {
+    reportPost(input: $input) {
+        interaction {
+            id
+        }
+    }
+}

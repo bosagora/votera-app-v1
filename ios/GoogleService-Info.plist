@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>810943671660-4aq81k8nja5g0654557d0sto21umcl7n.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.810943671660-4aq81k8nja5g0654557d0sto21umcl7n</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCfpjv1WlHJ06VznUAXy5PZiuWR03PFsnw</string>
+	<key>GCM_SENDER_ID</key>
+	<string>810943671660</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.votera.test</string>
+	<key>PROJECT_ID</key>
+	<string>votera-2c754</string>
+	<key>STORAGE_BUCKET</key>
+	<string>votera-2c754.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:810943671660:ios:d2de17b0ab13fb22165749</string>
+	<key>DATABASE_URL</key>
+	<string>https://votera-2c754.firebaseio.com</string>
+</dict>
+</plist>
