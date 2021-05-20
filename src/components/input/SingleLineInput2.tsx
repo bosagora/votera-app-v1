@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
     },
     input: {
         fontFamily: 'NotoSansCJKkrBold',
+        fontWeight: 'bold',
         color: 'rgb(112, 58, 222)',
         fontSize: 14,
     },
@@ -50,7 +51,6 @@ const TextInputComponent = (props: TextInputComponentProps) => {
     const {
         inputStyle,
         inputContainerStyle,
-        labelStyle,
         placeholderTextColor,
         placeholderText,
         searchValue,
@@ -121,7 +121,6 @@ const TextInputComponent = (props: TextInputComponentProps) => {
                 autoCapitalize="none"
                 inputStyle={[styles.input, inputStyle]}
                 inputContainerStyle={[styles.inputContainerStyle]}
-                labelStyle={[globalStyle.inputLabel, labelStyle]}
                 placeholder={placeholderText}
                 placeholderTextColor="rgb(112, 58, 222)"
                 selectionColor={themeContext.color.primary}

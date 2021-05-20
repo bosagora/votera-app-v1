@@ -18,7 +18,7 @@ import { loadUriAsFile } from '~/graphql/client';
 import {
     Enum_Post_Status,
     Enum_Post_Type,
-    GetPostsDocument,
+    GetCommentPostsDocument,
     useCreatePostMutation,
     useUploadFileMutation,
 } from '~/graphql/generated/generated';
@@ -154,23 +154,34 @@ const CreateNoticeScreen = ({ navigation, route }: MainNavProps<'CreateNotice'>)
                     },
                 },
                 update(cache, { data: { createPost } }) {
-                    const cacheReads = cache.readQuery({
-                        query: GetPostsDocument,
-                        variables: {
-                            where: { activity: route.params.id, type: Enum_Post_Type.BoardArticle, status: Enum_Post_Status.Open },
-                            sort: 'createdAt:desc',
-                        },
-                    });
+                    const cacheReads =
+                        cache.readQuery({
+                            query: GetCommentPostsDocument,
+                            variables: {
+                                where: {
+                                    activity: route.params.id,
+                                    type: Enum_Post_Type.BoardArticle,
+                                    status: Enum_Post_Status.Open,
+                                },
+                                sort: 'createdAt:desc',
+                            },
+                        }) || [];
 
-                    const posts = [createPost.post, ...cacheReads?.posts];
+                    const listPosts = cacheReads?.listPosts
+                        ? [createPost.post, ...cacheReads?.listPosts]
+                        : [createPost.post];
 
                     cache.writeQuery({
-                        query: GetPostsDocument,
+                        query: GetCommentPostsDocument,
                         variables: {
-                            where: { activity: route.params.id, type: Enum_Post_Type.BoardArticle, status: Enum_Post_Status.Open },
+                            where: {
+                                activity: route.params.id,
+                                type: Enum_Post_Type.BoardArticle,
+                                status: Enum_Post_Status.Open,
+                            },
                             sort: 'createdAt:desc',
                         },
-                        data: { posts },
+                        data: { listPosts },
                     });
                 },
             });

@@ -189,6 +189,7 @@ const RecoveryScreen = ({ navigation }: AccessNavProps<'Recovery'>) => {
                                         fontSize: 14,
                                         color: isActive ? themeContext.color.primary : themeContext.color.disabled,
                                         fontFamily: isActive ? 'NotoSansCJKkrBold' : 'NotoSansCJKkrLight',
+                                        fontWeight: isActive ? 'bold' : '300',
                                     }}
                                 >
                                     {route.title}

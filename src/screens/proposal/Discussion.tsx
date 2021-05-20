@@ -3,7 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { useDispatch } from 'react-redux';
 import FilterButton from '~/components/button/FilterButton';
 import { OpinionFilterType } from '~/types/filterType';
-import { Text } from 'react-native-elements';
+import { Button, Text } from 'react-native-elements';
 import MultilineInput from '~/components/input/MultiLineInput';
 import OpinionCard from '~/components/opinion/OpinionCard';
 import {
@@ -11,9 +11,8 @@ import {
     Enum_Post_Type,
     GetCommentPostsDocument,
     Post,
-    useCreateInteractionMutation,
     useCreatePostMutation,
-    useGetCommentPostsQuery,
+    useGetCommentPostsLazyQuery,
 } from '~/graphql/generated/generated';
 import ActionCreators from '~/state/actions';
 import globalStyle from '~/styles/global';
@@ -26,6 +25,7 @@ import { ThemeContext } from 'styled-components/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import getString from '~/utils/locales/STRINGS';
 import _ from 'lodash';
+import { isCloseToBottom } from '~/utils';
 
 const FETCH_MORE_LIMIT = 5;
 interface DiscussionProps {
@@ -45,37 +45,34 @@ const Discussion = (props: DiscussionProps) => {
     const [commentsData, setCommentsData] = useState<Post[]>();
     // TODO: filter 버튼을 통해 변경할 경우 , filter state 가 변경됩니다.
     const [filter, setFilter] = useState<OpinionFilterType>(OpinionFilterType.LATEST);
+    const [isStopFetchMore, setStopFetchMore] = useState(false);
 
     const [createCommentMutation] = useCreatePostMutation();
-    const [createLikeMutation] = useCreateInteractionMutation();
     const createFollow = useCreateFollow();
 
-    const { data: commentsQueryData } = useGetCommentPostsQuery({
-        variables: {
-            where: { activity: id, type: Enum_Post_Type.CommentOnActivity, status: Enum_Post_Status.Open },
-            sort: 'createdAt:desc',
-            limit: FETCH_MORE_LIMIT,
-        },
+    const [getComments, { data: commentsQueryData, fetchMore, refetch }] = useGetCommentPostsLazyQuery({
         fetchPolicy: 'cache-and-network',
         nextFetchPolicy: 'cache-first',
     });
 
     useEffect(() => {
-        if (commentsQueryData?.listPosts) {
-            if (filter === OpinionFilterType.LATEST) {
-                const sorted = _.sortBy(commentsQueryData.listPosts, ['createdAt']).reverse();
-                // const sorted = commentsQueryData.posts.sort((a, b) => b?.createdAt - a?.createdAt);
-                setCommentsData(sorted as Post[]);
-            } else {
-                const sorted = _.sortBy(commentsQueryData.listPosts, [
-                    function (o) {
-                        return o?.interactions?.length;
-                    },
-                ]).reverse();
-                setCommentsData(sorted as Post[]);
-            }
+        if (filter) {
+            const sort = filter === OpinionFilterType.LATEST ? 'createdAt:desc' : 'likeCount:desc';
+            getComments({
+                variables: {
+                    where: { activity: id, type: Enum_Post_Type.CommentOnActivity, status: Enum_Post_Status.Open },
+                    sort,
+                    limit: FETCH_MORE_LIMIT,
+                },
+            });
         }
-    }, [commentsQueryData, filter]);
+    }, [filter]);
+
+    useEffect(() => {
+        if (commentsQueryData?.listPosts) {
+            setCommentsData(commentsQueryData.listPosts as Post[]);
+        }
+    }, [commentsQueryData]);
 
     const createComment = async () => {
         try {
@@ -114,7 +111,11 @@ const Discussion = (props: DiscussionProps) => {
                     const cacheReads = cache.readQuery({
                         query: GetCommentPostsDocument,
                         variables: {
-                            where: { activity: id, type: Enum_Post_Type.CommentOnActivity, status: Enum_Post_Status.Open },
+                            where: {
+                                activity: id,
+                                type: Enum_Post_Type.CommentOnActivity,
+                                status: Enum_Post_Status.Open,
+                            },
                             sort: 'createdAt:desc',
                             limit: FETCH_MORE_LIMIT,
                         },
@@ -125,7 +126,11 @@ const Discussion = (props: DiscussionProps) => {
                     cache.writeQuery({
                         query: GetCommentPostsDocument,
                         variables: {
-                            where: { activity: id, type: Enum_Post_Type.CommentOnActivity, status: Enum_Post_Status.Open },
+                            where: {
+                                activity: id,
+                                type: Enum_Post_Type.CommentOnActivity,
+                                status: Enum_Post_Status.Open,
+                            },
                             sort: 'createdAt:desc',
                             limit: FETCH_MORE_LIMIT,
                         },
@@ -143,7 +148,9 @@ const Discussion = (props: DiscussionProps) => {
                     pushData?.enablePush,
                 ).catch(console.log);
             }
-            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '글이 등록 되었습니다.' }));
+            dispatch(
+                ActionCreators.snackBarVisibility({ visibility: true, text: getString('글이 등록 되었습니다&#46;') }),
+            );
             setText('');
             // if (commentRefetch) commentRefetch();
         } catch (err) {
@@ -161,23 +168,63 @@ const Discussion = (props: DiscussionProps) => {
         );
     }
 
+    const renderFetchMoreButton = () => {
+        if (isStopFetchMore || !commentsData || commentsData.length < 5) return null;
+        return (
+            <Button
+                title={'더보기'}
+                onPress={() => {
+                    if (fetchMore) {
+                        const currentLength = commentsData?.length || 0;
+                        fetchMore({
+                            variables: { limit: FETCH_MORE_LIMIT, start: currentLength },
+                        })
+                            .then((fetchMoreResult) => {
+                                const length = fetchMoreResult.data.listPosts?.length || 0;
+                                if (length < 1) setStopFetchMore(true);
+                            })
+                            .catch(console.log);
+                    }
+                }}
+                buttonStyle={{ marginTop: 10 }}
+            />
+        );
+    };
+
     return (
-        <KeyboardAwareScrollView style={{ flex: 1 }} scrollEnabled={false}>
+        <KeyboardAwareScrollView style={{ flex: 1 }}>
             <View onLayout={(event) => onLayout(event.nativeEvent.layout.height)}>
                 <View style={[globalStyle.flexRowBetween, { marginBottom: 20 }]}>
                     <Text style={[globalStyle.gbtext, { lineHeight: 20, fontSize: 12 }]}>{user?.nodename}</Text>
-                    <ShortButton
-                        title={getString('공지보기')}
-                        titleStyle={{ fontSize: 10 }}
-                        buttonStyle={{
-                            backgroundColor: 'transparent',
-                            width: 61,
-                            height: 26,
-                            padding: 0,
-                            borderRadius: 6,
-                        }}
-                        onPress={moveToNotice}
-                    />
+                    <View style={{ flexDirection: 'row' }}>
+                        <ShortButton
+                            title={getString('새로고침')}
+                            titleStyle={{ fontSize: 10 }}
+                            buttonStyle={{
+                                backgroundColor: 'transparent',
+                                width: 61,
+                                height: 26,
+                                padding: 0,
+                                borderRadius: 6,
+                                marginRight: 5,
+                            }}
+                            onPress={() => {
+                                if (refetch) refetch();
+                            }}
+                        />
+                        <ShortButton
+                            title={getString('공지보기')}
+                            titleStyle={{ fontSize: 10 }}
+                            buttonStyle={{
+                                backgroundColor: 'transparent',
+                                width: 61,
+                                height: 26,
+                                padding: 0,
+                                borderRadius: 6,
+                            }}
+                            onPress={moveToNotice}
+                        />
+                    </View>
                 </View>
                 <MultilineInput
                     onlyRead={false}
@@ -188,22 +235,25 @@ const Discussion = (props: DiscussionProps) => {
                     onPress={() => createComment()}
                 />
                 {renderFilterView()}
-                {commentsData?.filter((comment) => !isReported(comment.id)).map((comment) => {
-                    const isLiked = comment.interactions?.find((it) => it?.actor?.id === user?.memberId);
-                    return (
-                        <OpinionCard
-                            key={'comment_' + comment.id}
-                            activityId={id}
-                            postId={comment.id}
-                            created={comment.createdAt}
-                            description={comment.content?.find(e => true)?.text || ''}
-                            nickname={comment.writer?.username || 'nickname'}
-                            replyCount={comment.childPosts?.length || 0}
-                            likeCount={comment.interactions?.length || 0}
-                            isLiked={!!isLiked}
-                        />
-                    );
-                })}
+                {commentsData
+                    ?.filter((comment) => !isReported(comment.id))
+                    .map((comment) => {
+                        const isLiked = comment.interactions?.find((it) => it?.actor?.id === user?.memberId);
+                        return (
+                            <OpinionCard
+                                key={'comment_' + comment.id}
+                                activityId={id}
+                                postId={comment.id}
+                                created={comment.createdAt}
+                                description={comment.content?.find((e) => true)?.text || ''}
+                                nickname={comment.writer?.username || 'nickname'}
+                                replyCount={comment.childPosts?.length || 0}
+                                likeCount={comment.interactions?.length || 0}
+                                isLiked={!!isLiked}
+                            />
+                        );
+                    })}
+                {renderFetchMoreButton()}
             </View>
         </KeyboardAwareScrollView>
     );

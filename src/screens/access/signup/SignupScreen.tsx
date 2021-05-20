@@ -134,7 +134,7 @@ const SignupScreen = ({ navigation }: AccessNavProps<'Signup'>) => {
                 const loginResult = await login(pin);
                 if (!loginResult.succeeded) {
                     dispatch(ActionCreators.loadingAniModal({ visibility: false }));
-                    dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '로그인 실패' }));
+                    dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('로그인 실패') }));
                     return;
                 }
 
@@ -144,12 +144,14 @@ const SignupScreen = ({ navigation }: AccessNavProps<'Signup'>) => {
                 navigation.navigate('Main', { screen: 'Home' });
             } else {
                 dispatch(ActionCreators.loadingAniModal({ visibility: false }));
-                dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '사용자 생성 실패' }));
+                dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('사용자 생성 실패') }));
             }
         } catch (err) {
             console.log('createValidatorUser error = ', err);
             dispatch(ActionCreators.loadingAniModal({ visibility: false }));
-            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '사용자 생성 중 오류 발생' }));
+            dispatch(
+                ActionCreators.snackBarVisibility({ visibility: true, text: getString('사용자 생성 중 오류 발생') }),
+            );
         }
     };
 
@@ -199,6 +201,7 @@ const SignupScreen = ({ navigation }: AccessNavProps<'Signup'>) => {
                                         fontSize: 14,
                                         color: isActive ? themeContext.color.primary : themeContext.color.disabled,
                                         fontFamily: isActive ? 'NotoSansCJKkrBold' : 'NotoSansCJKkrLight',
+                                        fontWeight: isActive ? 'bold' : '300',
                                     }}
                                 >
                                     {route.title}

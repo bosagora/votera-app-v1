@@ -24,6 +24,8 @@ import { ProposalContext } from '~/contexts/ProposalContext';
 import push from '~/services/FcmService';
 import { useCreateFollow } from '~/graphql/hooks/Follow';
 import { downloadFile } from '~/utils/file';
+import getString from '~/utils/locales/STRINGS';
+import ShortButton from '../button/ShortButton';
 
 interface NoticeCardProps {
     noticeData: Post;
@@ -65,20 +67,24 @@ const NoticeCard = (props: NoticeCardProps) => {
     const [text, setText] = useState<string>('');
     const [expanded, setExpanded] = useState(false);
 
+    const [replyCount, setReplyCount] = useState(noticeData.childPosts?.length);
     const [comments, setComments] = useState<Post[]>([]);
     const [noticeImgs, setNoticeImgs] = useState<NoticeImgsProps[]>([]);
     const [noticeFiles, setNoticeFiles] = useState<UploadFile[]>([]);
+    const [isStopFetchMore, setStopFetchMore] = useState(false);
 
     const [createCommentMutation] = useCreatePostMutation();
     const createFollow = useCreateFollow();
-    const [getNoticeComments, { data: noticeCommentsQuery, loading, fetchMore }] = useGetCommentPostsLazyQuery({
-        fetchPolicy: 'cache-and-network',
-        nextFetchPolicy: 'cache-first',
-    });
+    const [getNoticeComments, { data: noticeCommentsQuery, loading, fetchMore, refetch }] = useGetCommentPostsLazyQuery(
+        {
+            fetchPolicy: 'cache-and-network',
+            nextFetchPolicy: 'cache-first',
+        },
+    );
 
     useEffect(() => {
         if (noticeCommentsQuery?.listPosts) {
-            setComments(noticeCommentsQuery.listPosts.filter(post => post && !isReported(post.id)) as Post[]);
+            setComments(noticeCommentsQuery.listPosts.filter((post) => post && !isReported(post.id)) as Post[]);
         } else {
             setComments([]);
         }
@@ -137,9 +143,13 @@ const NoticeCard = (props: NoticeCardProps) => {
         if (expanded) {
             getNoticeComments({
                 variables: {
-                    where: { type: Enum_Post_Type.CommentOnPost, parentPost: noticeData.id, status: Enum_Post_Status.Open },
+                    where: {
+                        type: Enum_Post_Type.CommentOnPost,
+                        parentPost: noticeData.id,
+                        status: Enum_Post_Status.Open,
+                    },
                     sort: 'createdAt:desc',
-                    
+
                     limit: FETCH_MORE_LIMIT,
                 },
             });
@@ -196,21 +206,30 @@ const NoticeCard = (props: NoticeCardProps) => {
                     const cacheReads = cache.readQuery({
                         query: GetCommentPostsDocument,
                         variables: {
-                            where: { type: Enum_Post_Type.CommentOnPost, parentPost: noticeData.id, status: Enum_Post_Status.Open },
+                            where: {
+                                type: Enum_Post_Type.CommentOnPost,
+                                parentPost: noticeData.id,
+                                status: Enum_Post_Status.Open,
+                            },
                             sort: 'createdAt:desc',
                         },
                     });
 
-                    const listPosts = [createPost.post, ...cacheReads?.listPosts];
+                    const listPosts = cacheReads ? [createPost.post, ...cacheReads?.listPosts] : [createPost.post];
 
                     cache.writeQuery({
                         query: GetCommentPostsDocument,
                         variables: {
-                            where: { type: Enum_Post_Type.CommentOnPost, parentPost: noticeData.id, status: Enum_Post_Status.Open },
+                            where: {
+                                type: Enum_Post_Type.CommentOnPost,
+                                parentPost: noticeData.id,
+                                status: Enum_Post_Status.Open,
+                            },
                             sort: 'createdAt:desc',
                         },
                         data: { listPosts },
                     });
+                    setReplyCount((replyCount || 0) + 1);
                 },
             });
 
@@ -223,13 +242,38 @@ const NoticeCard = (props: NoticeCardProps) => {
                     pushData?.enablePush,
                 ).catch(console.log);
             }
-            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '글이 등록 되었습니다.' }));
+            dispatch(
+                ActionCreators.snackBarVisibility({ visibility: true, text: getString('글이 등록 되었습니다&#46;') }),
+            );
             setText('');
         } catch (err) {
             console.log(err);
         } finally {
             // dispatch(ActionCreators.loadingAniModal({ visibility: false }));
         }
+    };
+
+    const renderFetchMoreButton = () => {
+        if (isStopFetchMore || !replyCount || replyCount < 5) return null;
+        return (
+            <Button
+                title={'더보기'}
+                onPress={() => {
+                    if (fetchMore) {
+                        const currentLength = comments?.length || 0;
+                        fetchMore({
+                            variables: { limit: FETCH_MORE_LIMIT, start: currentLength },
+                        })
+                            .then((fetchMoreResult) => {
+                                const length = fetchMoreResult.data.listPosts?.length || 0;
+                                if (length < 1) setStopFetchMore(true);
+                            })
+                            .catch(console.log);
+                    }
+                }}
+                buttonStyle={{ marginVertical: 10 }}
+            />
+        );
     };
 
     return (
@@ -239,7 +283,7 @@ const NoticeCard = (props: NoticeCardProps) => {
                     <Text style={[globalStyle.mtext, { flex: 1, fontSize: 16 }]}>{noticeData.content[0].title}</Text>
                     <RegularButton>
                         <Text style={[globalStyle.btext, { fontSize: 12, color: themeContext.color.primary }]}>{`답글 ${
-                            comments.length || 0
+                            replyCount || 0
                         }`}</Text>
                     </RegularButton>
                 </View>
@@ -284,22 +328,45 @@ const NoticeCard = (props: NoticeCardProps) => {
                         })}
                     </View>
                     <View style={{ marginVertical: 28 }}>
-                        <Text>{`${comments.length}개 답글`}</Text>
-                        {comments?.filter((comment) => comment && !isReported(comment.id)).map((recomment: Post) => {
-                            const status = isReported(recomment.id) ? 'REPORTED' : recomment.status || Enum_Post_Status.Open;
-                            return (
-                                <CommentCard
-                                    key={'noticeComment_' + recomment.id}
-                                    activityId={recomment.activity?.id || ''}
-                                    postId={recomment.id}
-                                    created={recomment.createdAt}
-                                    description={recomment.content?.find(e => true)?.text || ''}
-                                    nickname={recomment.writer?.username || 'username'}
-                                    status={status}
-                                />
-                            );
-                        })}
+                        <View style={globalStyle.flexRowBetween}>
+                            <Text>{`${replyCount}개 답글`}</Text>
+                            <ShortButton
+                                title={getString('새로고침')}
+                                titleStyle={{ fontSize: 10 }}
+                                buttonStyle={{
+                                    backgroundColor: 'transparent',
+                                    width: 61,
+                                    height: 26,
+                                    padding: 0,
+                                    borderRadius: 6,
+                                    marginRight: 5,
+                                }}
+                                onPress={() => {
+                                    if (refetch) refetch();
+                                }}
+                            />
+                        </View>
+                        {comments
+                            ?.filter((comment) => comment && !isReported(comment.id))
+                            .map((recomment: Post) => {
+                                const status = isReported(recomment.id)
+                                    ? 'REPORTED'
+                                    : recomment.status || Enum_Post_Status.Open;
+                                return (
+                                    <CommentCard
+                                        key={'noticeComment_' + recomment.id}
+                                        activityId={recomment.activity?.id || ''}
+                                        postId={recomment.id}
+                                        created={recomment.createdAt}
+                                        description={recomment.content?.find((e) => true)?.text || ''}
+                                        nickname={recomment.writer?.username || 'username'}
+                                        status={status}
+                                    />
+                                );
+                            })}
                     </View>
+                    {renderFetchMoreButton()}
+
                     <MultilineInput
                         onlyRead={false}
                         value={text}

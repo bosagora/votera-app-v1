@@ -125,6 +125,7 @@ const AccountInfo = ({ navigation, route }: MainDrawerProps<'AccountInfo'>): JSX
                                     title={getString('이름변경')}
                                     titleStyle={{
                                         fontFamily: 'NotoSansCJKkrBold',
+                                        fontWeight: 'bold',
                                         fontSize: 14,
                                         color: themeContext.color.primary,
                                     }}

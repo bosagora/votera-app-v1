@@ -35,6 +35,7 @@ const CommonButton = (props: CommonButtonProps) => {
                 {
                     fontSize: 14,
                     fontFamily: 'NotoSansCJKkrBold',
+                    fontWeight: 'bold',
                     color: filled ? 'white' : themeContext.color.primary,
                 },
                 props.titleStyle,

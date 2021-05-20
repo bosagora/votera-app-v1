@@ -110,7 +110,7 @@ const QRCodeScanner = (): JSX.Element => {
 
     if (hasPermission === false) {
         Alert.alert(
-            getString('카메라 접근 권한이 필요합니다&#46;'),
+            getString('Votera 앱이 카메라 접근 권한을 필요로 합니다&#46;'),
             getString('이동을 누르면 앱 설정으로 이동합니다&#46;'),
             [
                 {
