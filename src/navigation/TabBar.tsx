@@ -29,7 +29,7 @@ const TabButton = styled.TouchableOpacity<{ isFocused: boolean }>`
 `;
 
 const TabText = styled.Text<{ isFocused: boolean }>`
-    font-weight: 800;
+    font-weight: 700;
     font-family: 'NotoSansCJKkrBold';
     font-size: 13px;
     color: ${(props) => (props.isFocused ? 'rgb(112,58,222)' : '#000000')};

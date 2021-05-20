@@ -71,7 +71,7 @@ const NodeAuth = (props: AuthProps) => {
             <>
                 <Text style={{ lineHeight: 23 }}>
                     {getString(
-                        `Votera 계정을 만들기 위해서는 최소1개 이상의 유효한\nBOSAGORA 노드를 보유하고 계셔야 합니다&#46;`,
+                        `Votera 계정을 만들기 위해서는 최소 1개 이상의 유효한\nBOSAGORA 노드를 보유하고 계셔야 합니다&#46;`,
                     )}
                 </Text>
 

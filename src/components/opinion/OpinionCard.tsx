@@ -167,7 +167,9 @@ const Reply = (props: ReplyProps) => {
                     pushData?.enablePush,
                 ).catch(console.log);
             }
-            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '글이 등록 되었습니다.' }));
+            dispatch(
+                ActionCreators.snackBarVisibility({ visibility: true, text: getString('글이 등록 되었습니다&#46;') }),
+            );
             setText('');
             // if (commentRefetch) commentRefetch();
         } catch (err) {

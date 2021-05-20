@@ -21,7 +21,8 @@ query getPosts($where: JSON, $sort: String, $limit: Int) {
 }
 
 query getCommentPosts($where: JSON, $sort: String, $limit: Int, $start: Int) {
-    listPosts(where: $where, sort: $sort, limit: $limit, start: $start) @connection(key: "Proposal", filter: ["where"]) {
+    listPosts(where: $where, sort: $sort, limit: $limit, start: $start)
+        @connection(key: "Proposal", filter: ["where", "sort"]) {
         ...PostItem
     }
 }

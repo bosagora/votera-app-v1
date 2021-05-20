@@ -23,7 +23,7 @@ const ShortButton = (props: Props) => {
                 props.buttonStyle,
             ]}
             titleStyle={[
-                { fontSize: 15, fontFamily: 'NotoSansCJKkrBold', color: filled ? 'white' : themeContext.color.primary },
+                { fontSize: 15, fontFamily: 'NotoSansCJKkrBold', fontWeight: 'bold', color: filled ? 'white' : themeContext.color.primary },
                 props.titleStyle,
             ]}
         />

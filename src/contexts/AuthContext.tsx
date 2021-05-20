@@ -76,6 +76,7 @@ type AuthContextState = {
     addVoterCard: (nodeName: string, validatorLogin: ValidatorLogin) => Promise<string>;
     changeVoterCard: (memberId: string) => Promise<void>;
     changeVoterName: (memberId: string, nodeName: string) => Promise<void>;
+    updateVoterCard: (memberId: string, validatorLogin: ValidatorLogin) => Promise<void>;
     deleteVoterCard: (memberId: string, recovery?: boolean) => Promise<void>;
     getVoterCard: (memberId: string) => ValidatorLogin | null;
     getVoterName: (memberId: string) => string | null;
@@ -656,6 +657,47 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
         [updateMemberMutate, userState],
     );
 
+    const updateVoterCard = useCallback(
+        async (memberId: string, validatorLogin: ValidatorLogin) => {
+            if (!validatorLogin?.validator || !validatorLogin.voter_card) {
+                throw new Error('invalid VoterCard');
+            } else if (!validatorLogin.voter_card.verify()) {
+                throw new Error('invalid VoterCard');
+            }
+
+            const findIndex = localStorage.members.findIndex((member) => member.memberId === memberId);
+            if (findIndex < 0) {
+                throw new Error('member notFound');
+            } else if (localStorage.members[findIndex].validator !== validatorLogin.validator) {
+                throw new Error('member inconsistent validator');
+            }
+
+            const expires = validatorLogin ? new Date(validatorLogin.voter_card.expires) : new Date(0);
+            const voterCard = validatorLogin.getStringVoterCard();
+
+            const updateResult = await updateMemberMutate({
+                variables: {
+                    input: {
+                        where: {
+                            id: memberId,
+                        },
+                        data: {
+                            voterCard,
+                        }
+                    },
+                },
+            });
+
+            if (updateResult.data?.updateMember?.member?.id) {
+                localStorage.members[findIndex].votercard = validatorLogin?.toString() || '',
+                localStorage.members[findIndex].expiresIn = expires.getTime();
+
+                await LocalStorage.set(localStorage);
+            }
+        },
+        [updateMemberMutate],
+    );
+
     const deleteVoterCard = useCallback(
         async (memberId: string, recovery?: boolean) => {
             if (!recovery) {
@@ -726,6 +768,7 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
                 addVoterCard,
                 changeVoterCard,
                 changeVoterName,
+                updateVoterCard,
                 deleteVoterCard,
                 getVoterCard,
                 getVoterName,

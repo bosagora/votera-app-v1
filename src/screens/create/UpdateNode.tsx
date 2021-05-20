@@ -16,7 +16,7 @@ const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
     const themeContext = useContext(ThemeContext);
     const dispatch = useDispatch();
     const insets = useSafeAreaInsets();
-    const { user, getMember, registerVoterCard } = useContext(AuthContext);
+    const { user, getMember, updateVoterCard } = useContext(AuthContext);
     const [ member, setMember ] = useState(getMember(user?.memberId || ''));
 
     const popToMain = () => {
@@ -74,7 +74,7 @@ const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
                     return;
                 }
 
-                registerVoterCard(member.memberId || '', member.nodename || '', loginData.validator, loginData);
+                updateVoterCard(member.memberId || '', loginData);
                 navigation.goBack();
             } catch (err) {
                 console.log('checkNode error = ', err);

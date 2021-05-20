@@ -223,7 +223,7 @@ const Search = ({ navigation, route }: MainNavProps<'Search'>): JSX.Element => {
                     subComponent={
                         searchValue.length > 0 && (
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <TouchableOpacity style={{ paddingRight: 14 }} onPress={runSearch}>
+                                <TouchableOpacity style={{ width: 28, height: 28, justifyContent: 'center', alignItems: 'center' }} onPress={runSearch}>
                                     <Image source={require('@assets/icons/search/searchIconPurple.png')} />
                                 </TouchableOpacity>
                                 <Icon

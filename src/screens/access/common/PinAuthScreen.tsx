@@ -49,8 +49,8 @@ const PinAuthScreen = (props: PinAuthScreenProps) => {
 
     return (
         <View style={{ flex: 1, alignItems: 'center', paddingTop: 40 }}>
-            <Text style={[globalStyle.btext, { fontSize: 17 }]}>{getString('간편 암호 입력')}</Text>
-            <Text style={{ marginTop: 13 }}>{getString(`암호 6자리를 입력해주세요`)}</Text>
+            <Text style={[globalStyle.btext, { fontSize: 17 }]}>{getString('암호 입력')}</Text>
+            <Text style={{ marginTop: 13 }}>{getString(`암호를 입력해주세요`)}</Text>
             <View style={{ marginTop: 42, alignItems: 'center' }}>
                 {renderDots()}
                 <Text

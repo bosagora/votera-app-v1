@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Icon, Text } from 'react-native-elements';
 
@@ -7,19 +7,6 @@ interface ButtonProps {
     isActive: boolean;
     onPress: () => void;
 }
-
-/*
-const [click, setClick] = useState<boolean>(false);
-<View style={{ flexDirection: 'row' }}>
-    <ChoiceButton
-        text="버튼내용"
-        isActive={click}
-        onPress={() => {
-            setClick(!click);
-        }}
-    />
-</View>
-*/
 
 const styles = StyleSheet.create({
     contents: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },

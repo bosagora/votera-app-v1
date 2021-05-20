@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 const globalStyle = StyleSheet.create({
     btext: {
         fontFamily: 'NotoSansCJKkrBold',
+        fontWeight: 'bold',
     },
     center: {
         alignItems: 'center',
@@ -19,6 +20,7 @@ const globalStyle = StyleSheet.create({
     },
     headerTitle: {
         fontFamily: 'NotoSansCJKkrBold',
+        fontWeight: 'bold',
         fontSize: 16,
     },
     hederBottomLine: {
@@ -34,6 +36,7 @@ const globalStyle = StyleSheet.create({
     },
     ltext: {
         fontFamily: 'NotoSansCJKkrLight',
+        fontWeight: '300',
     },
     gmtext: {
         fontFamily: 'GmarketSansTTFMedium',

@@ -445,7 +445,9 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                     }}
                 >
                     <Text style={[globalStyle.ltext, { fontSize: 15, lineHeight: 23 }]}>
-                        {getString(`등록된 제안은 수정이 불가능하므로 내용을 정확하게 입력해주세요&#46;`)}
+                        {getString(
+                            `작성 완료된 제안은 수정이 불가능하므로\n아래의 제안 작성시 내용을 정확하게 등록해주세요&#46;`,
+                        )}
                     </Text>
                     <RowWrapper label={getString('제안 유형')} mandatory={true}>
                         <RadioButton

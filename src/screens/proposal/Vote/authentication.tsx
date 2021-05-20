@@ -24,7 +24,7 @@ const LineComponent: React.FC = () => (
 
 const Authentication = (props: Props) => {
     const { proposal } = useContext(ProposalContext);
-    const { user, getVoterCard, registerVoterCard, isValidVoterCard } = useContext(AuthContext);
+    const { user, getVoterCard, updateVoterCard, isValidVoterCard } = useContext(AuthContext);
     const themeContext = useContext(ThemeContext);
     const dispatch = useDispatch();
     const defaultStyle = { lineHeight: 25 };
@@ -54,7 +54,7 @@ const Authentication = (props: Props) => {
                     }
                 }
 
-                registerVoterCard(user?.memberId || '', user?.nodename || '', loginData.validator, loginData);
+                updateVoterCard(user?.memberId || '', loginData);
                 setValidatorLogin(loginData);
                 setValidValidator(true);
             } catch (err) {
@@ -213,7 +213,7 @@ const Authentication = (props: Props) => {
             )}
             {proposal?.status !== Enum_Proposal_Status.Vote && (
                 <Text style={{ alignSelf: 'center', marginTop: 20 }}>
-                    {getString('투표 기간이 아직 시작하지 않았습니다&#46;')}
+                    {getString('투표가 아직 시작되지 않았습니다&#46;')}
                 </Text>
             )}
         </View>

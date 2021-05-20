@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Image, ScrollView, Switch } from 'react-native';
+import { View, Image, ScrollView, StyleSheet, Switch } from 'react-native';
 import { Button, Text } from 'react-native-elements';
 import { useDispatch } from 'react-redux';
 import * as Application from 'expo-application';
@@ -18,6 +18,20 @@ import { getUserServiceTermURL, getPrivacyTermURL } from '~/utils/agoraconf';
 import { AuthContext } from '~/contexts/AuthContext';
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
 import getString from '~/utils/locales/STRINGS';
+
+const styles = StyleSheet.create({
+    sectionLabel: {
+        fontSize: 14,
+        marginBottom: 15,
+        fontFamily: 'NotoSansCJKkrBold',
+        fontWeight: 'bold',
+    },
+    sectionSeparator: {
+        height: 1,
+        backgroundColor: 'rgb(235,234,239)',
+        marginVertical: 30
+    },
+});
 
 const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element => {
     const dispatch = useDispatch();
@@ -117,6 +131,7 @@ const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element 
                             fontSize: 14,
                             marginTop: 8.5,
                             fontFamily: 'GmarketSansTTFBold',
+                            fontWeight: 'bold',
                             color: themeContext.color.primary,
                         }}
                     >
@@ -124,7 +139,7 @@ const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element 
                     </Text>
                 </View>
                 <View style={{ marginTop: 60 }}>
-                    <Text style={{ fontSize: 14, marginBottom: 15, fontFamily: 'NotoSansCJKkrBold' }}>
+                    <Text style={styles.sectionLabel}>
                         {getString('알림')}
                     </Text>
                     <View style={[globalStyle.flexRowBetween, { height: 40 }]}>
@@ -167,10 +182,10 @@ const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element 
                     </TouchableOpacity>
                 </View>
 
-                <View style={{ height: 1, backgroundColor: 'rgb(235,234,239)', marginVertical: 30 }} />
+                <View style={styles.sectionSeparator} />
 
                 <View>
-                    <Text style={{ fontSize: 14, marginBottom: 15, fontFamily: 'NotoSansCJKkrBold' }}>
+                    <Text style={styles.sectionLabel}>
                         {getString('계정 설정')}
                     </Text>
                     <TouchableOpacity
@@ -209,9 +224,9 @@ const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element 
                         <Image source={require('@assets/icons/arrow/rightArrowDarkgray.png')} />
                     </TouchableOpacity>
                 </View>
-                <View style={{ height: 1, backgroundColor: 'rgb(235,234,239)', marginVertical: 30 }} />
+                <View style={styles.sectionSeparator} />
 
-                <Text style={{ fontSize: 14, marginBottom: 15, fontFamily: 'NotoSansCJKkrBold' }}>
+                <Text style={styles.sectionLabel}>
                     {getString('기타')}
                 </Text>
                 <TouchableOpacity style={[globalStyle.flexRowBetween, { height: 40 }]}>

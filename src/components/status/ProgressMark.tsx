@@ -25,7 +25,7 @@ export const getProposalStatusString = (status: Enum_Extended_Proposal_Status | 
         case 'VOTE':
             return getString('투표중');
         case 'PENDING_ASSESS':
-            return getString('사전평가 준비중');
+            return getString('결제 대기중');
         case 'ASSESS':
             return getString('사전평가중');
         case 'CLOSED':

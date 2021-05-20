@@ -9,21 +9,7 @@ interface CommentButtonProps {
     onPress: any;
     commentCount?: number;
 }
-/*
-<CommentButton
-    type="WRITE"
-    onPress={() => {
-        console.log('click Comment Write Button!');
-    }}
-/>
-<CommentButton
-    type="COUNT"
-    onPress={() => {
-        console.log('click Comment Count Button!');
-    }}
-    commentCount={3}
-/>
-*/
+
 const CommentButton = (props: CommentButtonProps): JSX.Element => {
     const { onPress, commentCount } = props;
     const themeContext = useContext(ThemeContext);
@@ -35,7 +21,7 @@ const CommentButton = (props: CommentButtonProps): JSX.Element => {
                     ? `${getString('답글 N').replace('N', commentCount.toString() || '0')}`
                     : getString('답글작성')
             }
-            titleStyle={{ fontSize: 10, fontFamily: 'NotoSansCJKkrBold' }}
+            titleStyle={{ fontSize: 10, fontFamily: 'NotoSansCJKkrBold', fontWeight: 'bold' }}
             buttonStyle={{
                 paddingHorizontal: 10,
                 paddingVertical: 4,
