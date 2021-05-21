@@ -9,7 +9,7 @@ import globalStyle from '~/styles/global';
 import { Enum_Proposal_Status, Enum_Proposal_Type } from '~/graphql/generated/generated';
 import CommonButton from '~/components/button/CommonButton';
 import { AuthContext } from '~/contexts/AuthContext';
-import { parseQrcodeValidatorLogin, parseQrcodeValidatorVote, ValidatorLogin, ValidatorVote } from '~/utils/voterautil';
+import { parseQrcodeValidatorLogin, parseQrcodeValidatorVote, ValidatorLogin, ValidatorVote, getAmountFromBoaString } from '~/utils/voterautil';
 import ActionCreators from '~/state/actions';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import getString from '~/utils/locales/STRINGS';
@@ -155,7 +155,7 @@ const Authentication = (props: Props) => {
                             { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 },
                         ]}
                     >
-                        {proposal?.fundingAmount?.toLocaleString()} BOA
+                        {getAmountFromBoaString(proposal?.fundingAmount).toLocaleString()} BOA
                     </Text>
                 </View>
             )}

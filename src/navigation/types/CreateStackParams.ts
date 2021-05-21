@@ -18,7 +18,7 @@ export type CreateStackParams = {
             begin?: Date;
             end?: Date;
         };
-        fundingAmount: number;
+        fundingAmount: string;
         logoImage?: ImagePickerResult;
         mainImage?: ImagePickerResult;
     };

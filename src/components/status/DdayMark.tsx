@@ -5,8 +5,8 @@ import { Text } from 'react-native-elements';
 import { Enum_Proposal_Type } from '~/graphql/generated/generated';
 
 interface DdayMarkProps {
-    deadline: number | Date;
-    type: Enum_Proposal_Type;
+    deadline: number | Date | undefined;
+    type: Enum_Proposal_Type | undefined;
     color?: string;
 }
 

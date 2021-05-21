@@ -1,20 +1,20 @@
 # votera-app
 Votera Mobile App
 
-## build 하기 전에 codegen이 되어 있는지 확인 필요
+## confirm run codegen before build
 
 $ yarn run codegen
 $ yarn start
 
-## .env 파일에 넣어야 되는 정보
+## ENV varioable in .env file
 
 |Name|Description|
 |----|-----------|
-|SERVER_URL|Votera Server의 Url|
-|WEBSOCKET_URL|Votera Server의 pubsub url|
-|FEEDSOCKET_URL|Votera Feed Server의 pubsub url|
-|WALLET_FEE_URL|proposal fee를 입금할 때 호출하는 wallet url|
-|WALLET_DATA_URL|proposal data와 vote fee를 입금할 때 호출하는 wallet url|
-|WALLET_VOTE_URL|사용자가 vote 할 때 호출하는 wallet url|
-|VOTE_RESULT_URL|투표 결과를 보여줄 url (votera server의 agora의 정보로 overwrite 됨)|
+|SERVER_URL|URL of Votera Server|
+|WEBSOCKET_URL|PubSub URL of Votera Server|
+|FEEDSOCKET_URL|PubSub URL of Votera Feed Server|
+|WALLET_FEE_URL|wallet URL to invoke when deposit proposal fee|
+|WALLET_DATA_URL|wallet URL to invoke when deposit vote fee and proposal data|
+|WALLET_VOTE_URL|wallet URL to invoke when voting|
+|VOTE_RESULT_URL|URL for vote result (it will be ignored when app fetches agora information (voteResultUrl) of votera server)|
 

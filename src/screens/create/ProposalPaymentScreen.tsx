@@ -4,16 +4,16 @@ import { Text } from 'react-native-elements';
 import { ThemeContext } from 'styled-components/native';
 import { useDispatch } from 'react-redux';
 import moment from 'moment';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import globalStyle from '~/styles/global';
 import CommonButton from '~/components/button/CommonButton';
 import { useGetProposalFeeQuery, Enum_Fee_Status, Enum_Proposal_Type } from '~/graphql/generated/generated';
-import { makeProposalFeeDataLinkData } from '~/utils/voterautil';
+import { makeProposalFeeDataLinkData, getAmountFromBoaString } from '~/utils/voterautil';
 import { openProposalFeeLink } from '~/utils/linkutil';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import ActionCreators from '~/state/actions';
 import { CreateNavProps } from '~/navigation/types/CreateStackParams';
 import ShortButton from '~/components/button/ShortButton';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
 
 const LineComponent: React.FC = () => (
@@ -125,7 +125,7 @@ const ProposalPayment = ({ navigation, route }: CreateNavProps<'ProposalPayment'
                                     proposal?.proposalId || '',
                                     data?.proposalFee?.proposer_address || '',
                                     data?.proposalFee?.destination || '',
-                                    data?.proposalFee?.amount || 0,
+                                    data?.proposalFee?.amount || '0',
                                 );
 
                                 openProposalFeeLink(linkData).catch((err) => {
@@ -205,7 +205,7 @@ const ProposalPayment = ({ navigation, route }: CreateNavProps<'ProposalPayment'
                             { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 },
                         ]}
                     >
-                        {data?.proposalFee?.amount?.toLocaleString()} BOA
+                        {getAmountFromBoaString(data?.proposalFee?.amount).toLocaleString()} BOA
                     </Text>
                 </View>
                 {renderButton()}
@@ -229,7 +229,7 @@ const ProposalPayment = ({ navigation, route }: CreateNavProps<'ProposalPayment'
                                 { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 },
                             ]}
                         >
-                            {proposal?.fundingAmount?.toLocaleString()} BOA
+                            {getAmountFromBoaString(proposal?.fundingAmount).toLocaleString()} BOA
                         </Text>
                     </View>
                 )}

@@ -132,9 +132,7 @@ const ProposalPreviewScreen = ({ navigation, route }: CreateNavProps<'ProposalPr
                                 ? Enum_Proposal_Status.PendingVote
                                 : Enum_Proposal_Status.PendingAssess,
                             fundingAmount,
-                            logo: {
-                                url: logoImage?.uri,
-                            },
+                            logo: (logoImage && !logoImage.cancelled) ? { url: logoImage.uri } : undefined,
                             votePeriod: {
                                 begin: votePeriod?.begin,
                                 end: votePeriod?.end,
