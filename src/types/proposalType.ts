@@ -33,7 +33,7 @@ export interface ProposalType {
     description?: Maybe<Scalars['String']>;
     type: Enum_Extended_Proposal_Type;
     status: Enum_Extended_Proposal_Status;
-    fundingAmount?: Maybe<Scalars['Float']>;
+    fundingAmount?: Maybe<Scalars['String']>;
     proposalId?: Maybe<Scalars['String']>;
     logo?: { url: string };
     creator?: Maybe<Member>;
@@ -41,12 +41,12 @@ export interface ProposalType {
     votePeriod?: PeriodType;
     proposer_address?: Maybe<Scalars['String']>;
     proposal_fee_address?: Maybe<Scalars['String']>;
-    proposal_fee?: Maybe<Scalars['Float']>;
+    proposal_fee?: Maybe<Scalars['String']>;
     tx_hash_proposal_fee?: Maybe<Scalars['String']>;
     vote_start_height?: Maybe<Scalars['Int']>;
     vote_end_height?: Maybe<Scalars['Int']>;
     doc_hash?: Maybe<Scalars['String']>;
-    vote_fee?: Maybe<Scalars['Float']>;
+    vote_fee?: Maybe<Scalars['String']>;
     tx_hash_vote_fee?: Maybe<Scalars['String']>;
     validators?: Maybe<Scalars['String']>;
     proposal_begin?: Maybe<Scalars['Int']>;

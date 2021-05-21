@@ -36,7 +36,7 @@ import { AuthContext } from '~/contexts/AuthContext';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import { OpenWhere, ProjectWhere } from '~/graphql/hooks/Proposals';
 import push from '~/services/FcmService';
-import { ValidatorLogin } from '~/utils/voterautil';
+import { ValidatorLogin, getAmountAsBoaString } from '~/utils/voterautil';
 import { getProposalFeeRatio } from '~/utils/agoraconf';
 import getString from '~/utils/locales/STRINGS';
 
@@ -128,7 +128,6 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
     const [createError, setCreateError] = useState<{ errorName: string } | undefined>();
     const [createProposal] = useCreateProposalMutation();
     const [uploadAttachment] = useUploadFileMutation();
-    const { data } = useGetProposalsQuery();
 
     const resetData = () => {
         setTitle('');
@@ -182,6 +181,18 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 return;
             }
 
+            // check valid range of boa
+            if (proposalType === Enum_Proposal_Type.Business && (!boa || boa < 0 || boa > Number.MAX_SAFE_INTEGER)) {
+                setCreateError({ errorName: 'fundingAmount'});
+                dispatch(
+                    ActionCreators.snackBarVisibility({
+                        visibility: true,
+                        text: '요청금액 정보가 올바르지 않습니다',
+                    }),
+                );
+                return;
+            }
+
             dispatch(ActionCreators.loadingAniModal({ visibility: true }));
 
             if (logoImage && !logoImage.cancelled) {
@@ -220,7 +231,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 type: proposalType,
                 logo: uploadedLogoImageUrl,
                 attachment: uploadedAttachmentUrls as string[],
-                fundingAmount: boa,
+                fundingAmount: getAmountAsBoaString(boa),
                 proposer_address: validatorLogin.validator,
                 creator: user?.memberId,
                 status:
@@ -578,7 +589,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                                         begin: date.startDate && new Date(date.startDate?.timestamp),
                                         end: date.endDate && new Date(date.endDate?.timestamp),
                                     },
-                                    fundingAmount: boa ? boa : 0,
+                                    fundingAmount: getAmountAsBoaString(boa),
                                     logoImage,
                                     mainImage,
                                 })

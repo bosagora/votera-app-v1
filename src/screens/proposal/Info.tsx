@@ -1,21 +1,21 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { View, Image, Dimensions } from 'react-native';
-// import { convertPeriod } from '~/utils';
+import { Divider, Text } from 'react-native-elements';
+import { ThemeContext } from 'styled-components/native';
+import moment from 'moment';
+import { useDispatch } from 'react-redux';
 import { downloadFile } from '~/utils/file';
 import { getImageSize, ISize } from '~/utils/image';
 import DownloadComponent from '~/components/ui/Download';
 import { Enum_Proposal_Type, Proposal, SummarizeResponse } from '~/graphql/generated/generated';
-import { Divider, Text } from 'react-native-elements';
 import globalStyle from '~/styles/global';
-import { ThemeContext } from 'styled-components/native';
 import AssessAvg from '~/components/proposal/AssessAvg';
-import moment from 'moment';
 import { ProposalType } from '~/types/proposalType';
 import { getProposalStatusString } from '~/components/status/ProgressMark';
 import { ProposalContext } from '~/contexts/ProposalContext';
-import { useDispatch } from 'react-redux';
 import ActionCreators from '~/state/actions';
 import getString from '~/utils/locales/STRINGS';
+import { getAmountFromBoaString } from '~/utils/voterautil';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -48,7 +48,7 @@ const Info = (props: Props) => {
     }, [proposal, isPreview, previewData]);
 
     useEffect(() => {
-        if (data?.logo?.url) {
+        if ((data?.logo?.url || '') !== '') {
             getImageSize(data.logo.url).then((_logoImageSize) => {
                 if (_logoImageSize.width > SCREEN_WIDTH - 46) {
                     const imageRatio = (SCREEN_WIDTH - 46) / _logoImageSize.width;
@@ -58,16 +58,6 @@ const Info = (props: Props) => {
                 }
             });
         }
-        // if (data.mainImage.url) {
-        //     getImageSize(data.mainImage.url).then((_mainImageSize) => {
-        //         if (_mainImageSize.width > SCREEN_WIDTH - 46) {
-        //             const imageRatio = (SCREEN_WIDTH - 46) / _mainImageSize.width;
-        //             setMainImageSize({ width: SCREEN_WIDTH - 46, height: _mainImageSize.height * imageRatio });
-        //         } else {
-        //             setMainImageSize(_mainImageSize);
-        //         }
-        //     });
-        // }
     }, [data]);
 
     return (
@@ -77,9 +67,9 @@ const Info = (props: Props) => {
                 onLayout(event.nativeEvent.layout.height);
             }}
         >
-            {data?.logo?.url && (
+            {(data?.logo?.url || '') !== '' && (
                 <View style={{ alignItems: 'center', paddingBottom: 35 }}>
-                    <Image style={{ ...logoImageSize }} resizeMode="contain" source={{ uri: data.logo?.url }} />
+                    <Image style={{ ...logoImageSize }} resizeMode="contain" source={{ uri: data?.logo?.url }} />
                 </View>
             )}
             <View>
@@ -114,21 +104,11 @@ const Info = (props: Props) => {
                                 { ...defaultStyle, color: themeContext.color.primary, marginLeft: 18 },
                             ]}
                         >
-                            {data.fundingAmount?.toLocaleString()} BOA
+                            {getAmountFromBoaString(data.fundingAmount).toLocaleString()} BOA
                         </Text>
                     </View>
                 )}
             </View>
-
-            {/* {props.data && props.data.mainImage.url && (
-                <View style={{ alignItems: 'center', paddingTop: 45 }}>
-                    <Image
-                        style={{ ...mainImageSize }}
-                        resizeMode="contain"
-                        source={{ uri: props.data.mainImage.url }}
-                    />
-                </View>
-            )} */}
 
             <LineComponent />
 

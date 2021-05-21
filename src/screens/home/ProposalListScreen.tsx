@@ -26,6 +26,7 @@ import LocalStorage from '~/utils/LocalStorage';
 import ListFooterButton from '~/components/button/ListFooterButton';
 import { LocalStorageProposalProps } from '~/utils/LocalStorage/LocalStorageTypes';
 import getString from '~/utils/locales/STRINGS';
+import { getAmountFromBoaString, getAmountAsBoaString } from '~/utils/voterautil';
 import _ from 'lodash';
 
 const FETCH_INIT_LIMIT = 5;
@@ -53,7 +54,7 @@ function convertProposalToLocalProps(item: Proposal): LocalStorageProposalProps 
         name: item.name,
         description: item.description || '',
         type: item.type,
-        fundingFee: item.fundingAmount ? Number(item.fundingAmount) : undefined,
+        fundingFee: item.fundingAmount ? getAmountFromBoaString(item.fundingAmount) : undefined,
         startDate: item.votePeriod?.begin ? dateToStringDate(item.votePeriod.begin) : undefined,
         endDate: item.votePeriod?.end ? dateToStringDate(item.votePeriod.end) : undefined,
         status: item.status,
@@ -112,7 +113,7 @@ const ProposalListScreen = ({ navigation, route }: MainNavProps<'ProposalList'>)
                         description: temp.description,
                         type: temp.type as Enum_Proposal_Type,
                         status: temp.status as Enum_Proposal_Status,
-                        fundingAmount: temp.fundingFee,
+                        fundingAmount: getAmountAsBoaString(temp.fundingFee),
                         votePeriod: {
                             id: 'testVotePeriod',
                             _id: 'testVotePeriod',
@@ -121,6 +122,7 @@ const ProposalListScreen = ({ navigation, route }: MainNavProps<'ProposalList'>)
                         },
                         createdAt: new Date(),
                         updatedAt: new Date(),
+                        member_count: 0,
                     };
                     return item;
                 });

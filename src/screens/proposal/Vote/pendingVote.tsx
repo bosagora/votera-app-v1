@@ -7,7 +7,7 @@ import moment from 'moment';
 import globalStyle from '~/styles/global';
 import CommonButton from '~/components/button/CommonButton';
 import { Proposal, useGetVoteFeeQuery, Enum_Fee_Status, Enum_Proposal_Type } from '~/graphql/generated/generated';
-import { makeFundProposalDataLinkData, makeSystemProposalDataLinkData } from '~/utils/voterautil';
+import { makeFundProposalDataLinkData, makeSystemProposalDataLinkData, getAmountFromBoaString } from '~/utils/voterautil';
 import { openProposalDataLink } from '~/utils/linkutil';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import ActionCreators from '~/state/actions';
@@ -50,7 +50,7 @@ const PendingVote: React.FC<Props> = (props) => {
                 },
                 proposal.proposer_address || '',
                 JSON.parse(proposal.validators || '[]'),
-                proposal.vote_fee || 0,
+                proposal.vote_fee || '0',
             );
         } else {
             return makeFundProposalDataLinkData(
@@ -60,14 +60,14 @@ const PendingVote: React.FC<Props> = (props) => {
                     start: proposal.vote_start_height || 0,
                     end: proposal.vote_end_height || 0,
                     doc_hash: proposal.doc_hash || '',
-                    fund_amount: proposal.fundingAmount || 0,
-                    proposal_fee: proposal.proposal_fee || 0,
+                    fund_amount: proposal.fundingAmount || '0',
+                    proposal_fee: proposal.proposal_fee || '0',
                     tx_hash_proposal_fee: proposal.tx_hash_proposal_fee || '',
                 },
                 proposal.proposer_address || '',
                 proposal.proposal_fee_address || '',
                 JSON.parse(proposal.validators || '[]'),
-                proposal.vote_fee || 0,
+                proposal.vote_fee || '0',
             );
         }
     };
@@ -196,7 +196,7 @@ const PendingVote: React.FC<Props> = (props) => {
                 <Text
                     style={[globalStyle.btext, { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 }]}
                 >
-                    {data?.voteFee?.proposal?.vote_fee?.toLocaleString()} BOA
+                    {getAmountFromBoaString(data?.voteFee?.proposal?.vote_fee).toLocaleString()} BOA
                 </Text>
             </View>
             {renderButton()}
@@ -220,7 +220,7 @@ const PendingVote: React.FC<Props> = (props) => {
                             { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 },
                         ]}
                     >
-                        {proposal?.fundingAmount?.toLocaleString()} BOA
+                        {getAmountFromBoaString(proposal?.fundingAmount).toLocaleString()} BOA
                     </Text>
                 </View>
             )}

@@ -7,7 +7,7 @@ import moment from 'moment';
 import globalStyle from '~/styles/global';
 import CommonButton from '~/components/button/CommonButton';
 import { useGetProposalFeeQuery, Enum_Fee_Status, Enum_Proposal_Type } from '~/graphql/generated/generated';
-import { makeProposalFeeDataLinkData } from '~/utils/voterautil';
+import { makeProposalFeeDataLinkData, getAmountFromBoaString } from '~/utils/voterautil';
 import { openProposalFeeLink } from '~/utils/linkutil';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import ActionCreators from '~/state/actions';
@@ -88,7 +88,7 @@ const PendingAssess = (props: Props) => {
                                     proposal?.proposalId || '',
                                     data?.proposalFee?.proposer_address || '',
                                     data?.proposalFee?.destination || '',
-                                    data?.proposalFee?.amount || 0,
+                                    data?.proposalFee?.amount || '0',
                                 );
 
                                 openProposalFeeLink(linkData).catch((err) => {
@@ -188,7 +188,7 @@ const PendingAssess = (props: Props) => {
                 <Text
                     style={[globalStyle.btext, { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 }]}
                 >
-                    {data?.proposalFee?.amount?.toLocaleString()} BOA
+                    {getAmountFromBoaString(data?.proposalFee?.amount).toLocaleString()} BOA
                 </Text>
             </View>
             {renderButton()}
@@ -212,7 +212,7 @@ const PendingAssess = (props: Props) => {
                             { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 },
                         ]}
                     >
-                        {proposal?.fundingAmount?.toLocaleString()} BOA
+                        {getAmountFromBoaString(proposal?.fundingAmount).toLocaleString()} BOA
                     </Text>
                 </View>
             )}

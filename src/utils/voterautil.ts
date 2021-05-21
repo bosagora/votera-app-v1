@@ -63,7 +63,7 @@ export class ValidatorLogin {
 
 export interface ValidatorVote {
     app: string;
-    height: number;
+    height: boasdk.JSBI;
     key_agora_admin: boasdk.Hash;
 }
 
@@ -107,8 +107,8 @@ export function parseQrcodeValidatorVote(data: string): ValidatorVote {
     if (!qrdata.height || !qrdata.value) {
         throw new Error('invalid vote data');
     }
-    const height = Number(qrdata.height);
-    if (height < 0) {
+    const height = boasdk.JSBI.BigInt(qrdata.height);
+    if (boasdk.JSBI.lessThan(height, boasdk.JSBI.BigInt(0))) {
         throw new Error('invalid vote data');
     }
 
@@ -119,7 +119,7 @@ export function parseQrcodeValidatorVote(data: string): ValidatorVote {
     };
 }
 
-export function makeProposalFeeDataLinkData(proposal_id: string, proposer: string, fee_address: string, fee: number): LinkDataWithProposalFee {
+export function makeProposalFeeDataLinkData(proposal_id: string, proposer: string, fee_address: string, fee: string): LinkDataWithProposalFee {
     const feeData = new boasdk.ProposalFeeData(VOTERA_APP, proposal_id);
     const proposer_address = new boasdk.PublicKey(proposer);
     const destination =  new boasdk.PublicKey(fee_address);
@@ -136,8 +136,8 @@ interface SystemProposalData {
     doc_hash: string;
 }
 
-export function makeSystemProposalDataLinkData(proposal: SystemProposalData, proposer: string, validators: string[], vote_fee: number): LinkDataWithProposalData {
-    const voting_fee = vote_fee / validators.length;
+export function makeSystemProposalDataLinkData(proposal: SystemProposalData, proposer: string, validators: string[], vote_fee: string): LinkDataWithProposalData {
+    const voting_fee = boasdk.JSBI.divide(boasdk.JSBI.BigInt(vote_fee), boasdk.JSBI.BigInt(validators.length));
     const proposalData = new boasdk.ProposalData(
         VOTERA_APP,
         boasdk.ProposalType.System,
@@ -154,7 +154,7 @@ export function makeSystemProposalDataLinkData(proposal: SystemProposalData, pro
         new boasdk.PublicKey(proposer),
     );
 
-    return proposalData.getLinkData(new boasdk.PublicKey(proposer), validators.map((validator) => new boasdk.PublicKey(validator)), boasdk.JSBI.BigInt(voting_fee));
+    return proposalData.getLinkData(new boasdk.PublicKey(proposer), validators.map((validator) => new boasdk.PublicKey(validator)), voting_fee);
 }
 
 interface FundProposalData {
@@ -163,13 +163,13 @@ interface FundProposalData {
     start: number;
     end: number;
     doc_hash: string;
-    fund_amount: number;
-    proposal_fee: number;
+    fund_amount: string;
+    proposal_fee: string;
     tx_hash_proposal_fee: string;
 }
 
-export function makeFundProposalDataLinkData(proposal: FundProposalData, proposer: string, fee_address: string, validators: string[], vote_fee: number): LinkDataWithProposalData {
-    const voting_fee = vote_fee / validators.length;
+export function makeFundProposalDataLinkData(proposal: FundProposalData, proposer: string, fee_address: string, validators: string[], vote_fee: string): LinkDataWithProposalData {
+    const voting_fee = boasdk.JSBI.divide(boasdk.JSBI.BigInt(vote_fee), boasdk.JSBI.BigInt(validators.length));
     const proposalData = new boasdk.ProposalData(
         VOTERA_APP,
         boasdk.ProposalType.Fund,
@@ -186,7 +186,7 @@ export function makeFundProposalDataLinkData(proposal: FundProposalData, propose
         new boasdk.PublicKey(fee_address),
     );
 
-    return proposalData.getLinkData(new boasdk.PublicKey(proposer), validators.map((validator) => new boasdk.PublicKey(validator)), boasdk.JSBI.BigInt(voting_fee));
+    return proposalData.getLinkData(new boasdk.PublicKey(proposer), validators.map((validator) => new boasdk.PublicKey(validator)), voting_fee);
 }
 
 export enum VOTE_SELECT {
@@ -204,4 +204,28 @@ export function makeVoteLinkData(proposal_id: string, validator_login: Validator
     ballot_data.signature = validator_login.private_key.sign<boasdk.BallotData>(ballot_data);
 
     return ballot_data.getLinkData();
+}
+
+const BOA_DECIMAL = boasdk.JSBI.BigInt(10000000);
+const NUM_DECIMAL = 10000000;
+const BOA_ZERO = boasdk.JSBI.BigInt(0);
+
+export function getAmountAsBoaString(amount?: number): string {
+    if (!amount) return '0';
+    const boaAmount = boasdk.JSBI.multiply(boasdk.JSBI.BigInt(amount), BOA_DECIMAL);
+    return boaAmount.toString();
+}
+
+export function getAmountFromBoaString(boaAmount?: string | null): number {
+    if (!boaAmount || boaAmount === '') return 0;
+    const jsbiBoaAmount = boasdk.JSBI.BigInt(boaAmount);
+    const amount = boasdk.JSBI.divide(jsbiBoaAmount, BOA_DECIMAL);
+    const remain = boasdk.JSBI.remainder(jsbiBoaAmount, BOA_DECIMAL);
+    if (boasdk.JSBI.equal(remain, BOA_ZERO)) {
+        return boasdk.JSBI.toNumber(amount);
+    } else {
+        const numAmount = boasdk.JSBI.toNumber(amount);
+        const numRemain = boasdk.JSBI.toNumber(remain) / NUM_DECIMAL;
+        return numAmount + numRemain;
+    }
 }
