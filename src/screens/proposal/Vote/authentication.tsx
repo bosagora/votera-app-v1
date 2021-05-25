@@ -166,6 +166,9 @@ const Authentication = (props: Props) => {
                     {proposal?.description}
                 </Text>
             </View>
+
+            <LineComponent />
+            <Text style={[globalStyle.btext, { textAlignVertical: 'center', paddingBottom: 7 }]}>{user?.nodename}</Text>
             <View style={{ flexDirection: 'row' }}>
                 <Text style={defaultStyle}>Validator</Text>
                 <Text style={[globalStyle.ltext, { ...defaultStyle, marginLeft: 19, flex: 1 }]}>
@@ -184,7 +187,7 @@ const Authentication = (props: Props) => {
                             justifyContent: 'space-between',
                             paddingHorizontal: 21,
                             width: 209,
-                            marginTop: 90,
+                            marginTop: 30,
                             shadowOffset: { width: 0, height: 10 },
                         }}
                         disabled={proposal?.status !== Enum_Proposal_Status.Vote}
@@ -202,7 +205,7 @@ const Authentication = (props: Props) => {
                             justifyContent: 'space-between',
                             paddingHorizontal: 21,
                             width: 209,
-                            marginTop: 90,
+                            marginTop: 30,
                             shadowOffset: { width: 0, height: 10 },
                         }}
                         disabled={proposal?.status !== Enum_Proposal_Status.Vote}

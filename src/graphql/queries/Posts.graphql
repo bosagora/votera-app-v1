@@ -9,7 +9,7 @@ mutation CreatePost($input: createPostInput) {
 mutation updatePost($input: updatePostInput) {
     updatePost(input: $input) {
         post {
-            id
+            ...PostItem
         }
     }
 }

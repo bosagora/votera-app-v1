@@ -3811,10 +3811,10 @@ bn.js@^5.0.0, bn.js@^5.1.1:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.0.tgz#358860674396c6997771a9d051fcc1b57d4ae002"
   integrity sha512-D7iWRBvnZE8ecXiLj/9wbxH7Tk79fAh8IHaTNq1RWRixsS02W+5qS+iE9yq6RYl0asXx5tw0bLhmT5pIfbSquw==
 
-boa-sdk-ts@0.0.43:
-  version "0.0.43"
-  resolved "https://registry.yarnpkg.com/boa-sdk-ts/-/boa-sdk-ts-0.0.43.tgz#1d97ec1a9af758ba836a693aa08c3db78124b5dd"
-  integrity sha512-I7BXlISNmiNdnO/VZswqwVkz3YWiNRxZsUSeAEFVOMu0WwRCOYp7mPVo2Su2F2RMUY560O+9L/tffTY+21fuYA==
+boa-sdk-ts@0.0.44:
+  version "0.0.44"
+  resolved "https://registry.yarnpkg.com/boa-sdk-ts/-/boa-sdk-ts-0.0.44.tgz#b3c58d4c86093b58b9aae5b9b86dfdbfd2262929"
+  integrity sha512-YVEItlSjA4fwcRqjRinaLdYeMLBw4BM4FkrtXP3mCvLb+zqJfv5G74zZYvxwHNIwUo1At7k1lS7DRMPFcThXqA==
   dependencies:
     "@ctrl/ts-base32" "^1.2.1"
     ajv "^6.12.6"

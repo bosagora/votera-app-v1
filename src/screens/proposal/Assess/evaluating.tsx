@@ -135,7 +135,7 @@ const Evaluating = (props: Props) => {
                             dispatch(
                                 ActionCreators.snackBarVisibility({
                                     visibility: true,
-                                    text: '둘러보기 중에는 사용할 수 없습니다',
+                                    text: getString('둘러보기 중에는 사용할 수 없습니다'),
                                 }),
                             );
                         } else {

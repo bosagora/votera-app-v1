@@ -7,12 +7,13 @@ import { ProposalContext } from '~/contexts/ProposalContext';
 import ProposalCard from '~/components/proposal/ProposalCard';
 import ProposalTop from '~/components/proposal/ProposalTop';
 import ProposalsHeader from '~/components/proposal/ProposalHeader';
-import { Proposal, useGetProposalsLazyQuery, useGetProposalsQuery } from '~/graphql/generated/generated';
+import { Proposal, useGetProposalsLazyQuery } from '~/graphql/generated/generated';
 import { MainNavProps } from '~/navigation/types/MainStackParams';
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
 import { ProposalFilterType } from '~/types/filterType';
 import { isCloseToBottom } from '~/utils';
 import ActionCreators from '~/state/actions';
+import getString from '~/utils/locales/STRINGS';
 
 const FETCH_INIT_LIMIT = 5;
 const FETCH_MORE_LIMIT = 5;
@@ -39,7 +40,7 @@ const HomeScreen = ({ navigation, route }: MainNavProps<'Home'>) => {
     useFocusEffect(
         React.useCallback(() => {
             const onBackPress = () => {
-                if (route.name === '프로젝트' || route.name === '오픈예정') {
+                if (route.name === getString('프로젝트') || route.name === getString('오픈예정')) {
                     dispatch(ActionCreators.snackBarVisibility({ visibility: false }));
                     BackHandler.exitApp();
                     return true;

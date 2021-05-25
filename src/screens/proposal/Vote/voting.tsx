@@ -18,9 +18,11 @@ import VoteHistoryComponent from './voteHIstoryComponent';
 import getString from '~/utils/locales/STRINGS';
 
 interface Props {
-    runVote: (vote: VOTE_SELECT) => void;
+    runVote: (vote: VOTE_SELECT) => Promise<boolean>;
+    onChangeVote: () => void;
     isVoted?: Post;
     otherVotes?: Post[];
+    voteComplete: boolean;
 }
 
 const Container = styled.View`
@@ -39,7 +41,7 @@ const Voting = (props: Props) => {
     const [vote, setVote] = useState<VOTE_SELECT | undefined>(undefined);
     const [oldVote, setOldVote] = useState<VOTE_SELECT>();
     const [isSelected, setIsSelected] = useState(false);
-    const [voteComplete, setVoteComplete] = useState(false);
+    const [voteComplete, setVoteComplete] = useState(props.voteComplete);
     const [otherProposals, setOtherProposals] = useState<Proposal[]>([]);
 
     const { data: resProposalsData } = useGetProposalsQuery({
@@ -59,10 +61,11 @@ const Voting = (props: Props) => {
 
     useEffect(() => {
         if (isVoted !== undefined) {
-            setVoteComplete(true);
             const value = isVoted.content[0]?.single[0]?.value;
-            setOldVote(value);
-            setVote(value);
+            if (typeof value === 'number') {
+                setOldVote(value);
+                setVote(value);
+            }
         }
     }, [isVoted]);
 
@@ -94,7 +97,7 @@ const Voting = (props: Props) => {
                         dispatch(
                             ActionCreators.snackBarVisibility({
                                 visibility: true,
-                                text: '제안서 정보에 오류가 있습니다',
+                                text: getString('제안서 정보에 오류가 있습니다'),
                             }),
                         );
                         navigation.goBack();
@@ -116,17 +119,18 @@ const Voting = (props: Props) => {
                 <>
                     <VoteItem text={selectStr} type={vote} onPress={() => {}} isSelect={true} />
                     <Text style={[globalStyle.btext, { color: themeContext.color.primary, marginTop: 18 }]}>
-                        {`노드 ${user?.nodename} 으로`}
+                        {getString('노드 {nodename} 으로').replace('{nodename}', user?.nodename || '')}
                     </Text>
                     <Text
                         style={[globalStyle.btext, { color: themeContext.color[getVoteString(vote)], marginTop: 5 }]}
-                    >{`${selectStr}했습니다!`}</Text>
+                    >{getString('{select}했습니다!').replace('{select}', selectStr)}</Text>
 
                     <ShortButton
                         title={getString('수정하기')}
                         buttonStyle={{ marginTop: 17 }}
                         onPress={() => {
                             setVoteComplete(false);
+                            props.onChangeVote();
                         }}
                         filled
                     />
@@ -149,13 +153,25 @@ const Voting = (props: Props) => {
                                 dispatch(
                                     ActionCreators.snackBarVisibility({
                                         visibility: true,
-                                        text: '둘러보기 중에는 사용할 수 없습니다',
+                                        text: getString('둘러보기 중에는 사용할 수 없습니다'),
                                     }),
                                 );
                             } else {
-                                if (vote) props.runVote(vote);
+                                if (typeof vote === 'number') {
+                                    props.runVote(vote)
+                                        .then((result) => {
+                                            if (result) setVoteComplete(true);
+                                        })
+                                        .catch((err) => {
+                                            dispatch(ActionCreators.snackBarVisibility({
+                                                visibility: true,
+                                                text: getString('투표 처리 중 오류가 발생했습니다&#46;')
+                                            }));
+                                        });
+                                } else {
+                                    setVoteComplete(true);
+                                }
                             }
-                            setVoteComplete(true);
                         }}
                         buttonStyle={{ marginTop: 100 }}
                         title={isVoted !== undefined ? getString('수정하기') : getString('투표하기')}

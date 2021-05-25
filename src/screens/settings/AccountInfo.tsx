@@ -41,7 +41,7 @@ const AccountInfo = ({ navigation, route }: MainDrawerProps<'AccountInfo'>): JSX
             dispatch(
                 ActionCreators.snackBarVisibility({
                     visibility: true,
-                    text: '사용자 설정 오류로 변경 실패',
+                    text: getString('사용자 설정 오류로 변경 실패'),
                 }),
             );
             return;
@@ -63,7 +63,7 @@ const AccountInfo = ({ navigation, route }: MainDrawerProps<'AccountInfo'>): JSX
             dispatch(
                 ActionCreators.snackBarVisibility({
                     visibility: true,
-                    text: '노드 이름을 변경',
+                    text: getString('노드 이름을 변경'),
                 }),
             );
         } catch (err) {
@@ -76,7 +76,7 @@ const AccountInfo = ({ navigation, route }: MainDrawerProps<'AccountInfo'>): JSX
             dispatch(
                 ActionCreators.snackBarVisibility({
                     visibility: true,
-                    text: '이름 변경 중 오류 발생',
+                    text: getString('이름 변경 중 오류 발생'),
                 }),
             );
         }

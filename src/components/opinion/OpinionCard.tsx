@@ -83,7 +83,7 @@ const Reply = (props: ReplyProps) => {
                 dispatch(
                     ActionCreators.snackBarVisibility({
                         visibility: true,
-                        text: '둘러보기 중에는 사용할 수 없습니다',
+                        text: getString('둘러보기 중에는 사용할 수 없습니다'),
                     }),
                 );
                 return;
@@ -231,7 +231,7 @@ const OpinionCard = (props: OpinionCardProps): JSX.Element => {
             dispatch(
                 ActionCreators.snackBarVisibility({
                     visibility: true,
-                    text: '둘러보기 중에는 사용할 수 없습니다',
+                    text: getString('둘러보기 중에는 사용할 수 없습니다'),
                 }),
             );
             return;
@@ -252,29 +252,34 @@ const OpinionCard = (props: OpinionCardProps): JSX.Element => {
         if (isGuest) {
             dispatch(ActionCreators.snackBarVisibility({
                 visibility: true,
-                text: '둘러보기 중에는 사용할 수 없습니다'
+                text: getString('둘러보기 중에는 사용할 수 없습니다'),
             }));
             return;
         }
 
-        Alert.alert('이 게시물을 신고하시겠습니까?',
-            '신고할 경우, 이 게시물은 회원님께 숨김 처리 됩니다. 신고가 누적되면 다른 참여자들에게도 숨김처리가 될 예정입니다.',
+        Alert.alert(getString('이 게시물을 신고하시겠습니까?'),
+            getString('신고할 경우, 이 게시물은 회원님께 숨김 처리 됩니다&#46; 신고가 누적되면 다른 참여자들에게도 숨김처리가 될 예정입니다&#46;'),
             [{
-                text: '취소',
+                text: getString('취소'),
                 onPress: () => {
                     console.log('cancel pressed');
                 },
                 style: 'cancel',
             }, {
-                text: '신고',
+                text: getString('신고'),
                 onPress: () => {
                     reportPost(activityId, postId)
                         .then((succeeded) => {
                             // 여기 오기 rendering 되어서 없어질 듯
-                            if (!succeeded) {
+                            if (succeeded) {
                                 dispatch(ActionCreators.snackBarVisibility({
                                     visibility: true,
-                                    text: '신고 처리 중 오류가 발생했습니다'
+                                    text: getString('신고 처리가 완료되었습니다'),
+                                }));
+                            } else {
+                                dispatch(ActionCreators.snackBarVisibility({
+                                    visibility: true,
+                                    text: getString('신고 처리 중 오류가 발생했습니다'),
                                 }));
                             }
                         })
@@ -282,7 +287,7 @@ const OpinionCard = (props: OpinionCardProps): JSX.Element => {
                             console.log('catch exception while reportActivity : ', err);
                             dispatch(ActionCreators.snackBarVisibility({
                                 visibility: true,
-                                text: '신고 처리 중 오류가 발생했습니다'
+                                text: getString('신고 처리 중 오류가 발생했습니다'),
                             }));
                         });
                     },

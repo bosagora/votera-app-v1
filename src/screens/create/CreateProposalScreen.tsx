@@ -24,7 +24,6 @@ import {
     GetProposalsDocument,
     GetProposalsQuery,
     ProposalInput,
-    useGetProposalsQuery,
     useCreateProposalMutation,
     useUploadFileMutation,
 } from '~/graphql/generated/generated';
@@ -147,7 +146,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 dispatch(
                     ActionCreators.snackBarVisibility({
                         visibility: true,
-                        text: '둘러보기 중에는 사용할 수 없습니다',
+                        text: getString('둘러보기 중에는 사용할 수 없습니다'),
                     }),
                 );
                 return;
@@ -167,7 +166,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 dispatch(
                     ActionCreators.snackBarVisibility({
                         visibility: true,
-                        text: '필수 항목을 입력해주세요',
+                        text: getString('필수 항목을 입력해주세요'),
                     }),
                 );
                 return;
@@ -175,7 +174,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 dispatch(
                     ActionCreators.snackBarVisibility({
                         visibility: true,
-                        text: '제안자의 노드 정보가 올바르지 않습니다',
+                        text: getString('제안자의 노드 정보가 올바르지 않습니다'),
                     }),
                 );
                 return;
@@ -187,7 +186,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 dispatch(
                     ActionCreators.snackBarVisibility({
                         visibility: true,
-                        text: '요청금액 정보가 올바르지 않습니다',
+                        text: getString('요청금액 정보가 올바르지 않습니다'),
                     }),
                 );
                 return;
@@ -390,7 +389,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                     dispatch(
                         ActionCreators.snackBarVisibility({
                             visibility: true,
-                            text: '사용자 정보를 읽어올 수 없습니다',
+                            text: getString('사용자 정보를 읽어올 수 없습니다'),
                         }),
                     );
                     navigation.goBack();
@@ -402,7 +401,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                         dispatch(
                             ActionCreators.snackBarVisibility({
                                 visibility: true,
-                                text: '노드 정보가 유효하지 않습니다',
+                                text: getString('노드 정보가 유효하지 않습니다'),
                             }),
                         );
                         navigation.navigate('UpdateNode');
@@ -434,10 +433,10 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
             }
 
             await LocalStorage.addTemporaryProposal(newTempProposalData);
-            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '임시저장 되었습니다.' }));
+            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('임시저장 되었습니다&#46;')}));
         } catch (e) {
             console.log('Temp proposal save error : ', e);
-            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '임시 저장시 오류 발생' }));
+            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('임시 저장시 오류 발생') }));
         }
     };
 

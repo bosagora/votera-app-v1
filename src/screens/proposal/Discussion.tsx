@@ -80,7 +80,7 @@ const Discussion = (props: DiscussionProps) => {
                 dispatch(
                     ActionCreators.snackBarVisibility({
                         visibility: true,
-                        text: '둘러보기 중에는 사용할 수 없습니다',
+                        text: getString('둘러보기 중에는 사용할 수 없습니다'),
                     }),
                 );
                 return;
@@ -172,7 +172,7 @@ const Discussion = (props: DiscussionProps) => {
         if (isStopFetchMore || !commentsData || commentsData.length < 5) return null;
         return (
             <Button
-                title={'더보기'}
+                title={getString('더보기')}
                 onPress={() => {
                     if (fetchMore) {
                         const currentLength = commentsData?.length || 0;

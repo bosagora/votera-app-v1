@@ -1,5 +1,5 @@
 import * as boasdk from 'boa-sdk-ts';
-import { LinkDataWithProposalFee, LinkDataWithProposalData, LinkDataWithVoteData } from 'boa-sdk-ts/lib/modules/wallet/LinkData';
+import { LinkDataWithProposalFee, LinkDataWithProposalData, LinkDataWithVoteData } from 'boa-sdk-ts';
 import { SmartBuffer } from 'smart-buffer';
 
 interface QrcodeValidatorVoterCard {

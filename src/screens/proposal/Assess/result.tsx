@@ -9,7 +9,8 @@ import AssessAvg from '~/components/proposal/AssessAvg';
 import ProposalCard from '~/components/proposal/ProposalCard';
 import { Proposal, SummarizeResponse } from '~/graphql/generated/generated';
 import { ProposalContext } from '~/contexts/ProposalContext';
-import { ListItem } from 'react-native-elements/dist/list/ListItem';
+import getString from '~/utils/locales/STRINGS';
+
 
 interface Props {
     assessResultData: SummarizeResponse;
@@ -33,7 +34,7 @@ const EvaluationResult = (props: Props) => {
     return (
         <View>
             <View style={{ alignItems: 'center', marginVertical: 38 }}>
-                <Text style={[globalStyle.btext, { fontSize: 20 }]}>제안 평가가 완료되었습니다!</Text>
+                <Text style={[globalStyle.btext, { fontSize: 20 }]}>{getString('제안 평가가 완료되었습니다!')}</Text>
             </View>
 
             <AssessAvg assessResultData={assessResultData} />
@@ -42,7 +43,7 @@ const EvaluationResult = (props: Props) => {
             <View>
                 {proposals.length !== 0 && (
                     <>
-                        <Text style={{ color: 'rgb(71,71,75)' }}>다른 제안보기</Text>
+                        <Text style={{ color: 'rgb(71,71,75)' }}>{getString('다른 제안보기')}</Text>
                         {proposals.map((item: Proposal, index: number) => (
                             <ProposalCard
                                 key={'otherProposal_' + item.id}

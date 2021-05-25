@@ -11,6 +11,7 @@ import { AuthContext } from '~/contexts/AuthContext';
 import globalStyle from '~/styles/global';
 import { ValidatorLogin } from '~/utils/voterautil';
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
+import getString from '~/utils/locales/STRINGS';
 
 const AddNode = ({ navigation, route }: MainDrawerProps<'AddNode'>): JSX.Element => {
     const dispatch = useDispatch();
@@ -33,7 +34,7 @@ const AddNode = ({ navigation, route }: MainDrawerProps<'AddNode'>): JSX.Element
                         .then((memberId) => {
                             dispatch(ActionCreators.loadingAniModal({ visibility: false }));
                             dispatch(
-                                ActionCreators.snackBarVisibility({ visibility: true, text: '노드를 추가했습니다' }),
+                                ActionCreators.snackBarVisibility({ visibility: true, text: getString('노드를 추가했습니다') }),
                             );
                             navigation.goBack();
                         })
@@ -43,12 +44,12 @@ const AddNode = ({ navigation, route }: MainDrawerProps<'AddNode'>): JSX.Element
                             dispatch(
                                 ActionCreators.snackBarVisibility({
                                     visibility: true,
-                                    text: '노드 추가 중 오류가 발생했습니다',
+                                    text: getString('노드 추가 중 오류가 발생했습니다&#46;'),
                                 }),
                             );
                         });
                 }}
-                title="완료"
+                title={getString('완료')}
                 titleStyle={[globalStyle.rtext, { fontSize: 17, color: themeContext.color.primary }]}
                 buttonStyle={{ padding: 0 }}
                 hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
@@ -63,7 +64,7 @@ const AddNode = ({ navigation, route }: MainDrawerProps<'AddNode'>): JSX.Element
             headerTitleAlign: 'center',
             headerTitle: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={globalStyle.headerTitle}>노드 추가 인증</Text>
+                    <Text style={globalStyle.headerTitle}>{getString('노드 추가 인증')}</Text>
                 </View>
             ),
             headerLeft: () => (

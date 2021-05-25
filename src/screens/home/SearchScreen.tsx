@@ -129,7 +129,7 @@ const Search = ({ navigation, route }: MainNavProps<'Search'>): JSX.Element => {
                         <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
                             <Image source={require('@assets/icons/search/searchGrayIcon.png')} />
                             <Text style={{ fontSize: 13, color: themeContext.color.disabled, marginLeft: 6 }}>
-                                검색 내역이 없습니다
+                                {getString('검색 내역이 없습니다')}
                             </Text>
                         </View>
                     }
@@ -141,8 +141,8 @@ const Search = ({ navigation, route }: MainNavProps<'Search'>): JSX.Element => {
         return (
             <ScrollView contentContainerStyle={{ paddingHorizontal: 23, paddingBottom: 160 }}>
                 <View style={{ paddingTop: 30, flexDirection: 'row' }}>
-                    <Text>'{searchValue}'검색 결과 </Text>
-                    <Text style={{ color: themeContext.color.primary, paddingLeft: 19 }}>{proposals.length}개</Text>
+                    <Text>'{searchValue}' {getString('검색 결과')} </Text>
+                    <Text style={{ color: themeContext.color.primary, paddingLeft: 19 }}>{getString('N 개').replace('N', (proposals?.length || 0).toString())}</Text>
                 </View>
                 <View>
                     {proposals && (

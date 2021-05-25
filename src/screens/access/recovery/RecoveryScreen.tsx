@@ -15,11 +15,12 @@ import ActionCreators from '~/state/actions';
 import NodeAuth from '../common/NodeAuth';
 import PinEnrollScreen from '../common/PinEnrollScreen';
 import CompleteScreen from './Complete';
+import getString from '~/utils/locales/STRINGS';
 
 const keys = [
-    { key: 'auth', title: '노드인증' },
-    { key: 'password', title: '암호입력' },
-    { key: 'complete', title: '복구' },
+    { key: 'auth', title: getString('노드인증') },
+    { key: 'password', title: getString('암호입력') },
+    { key: 'complete', title: getString('복구') },
 ];
 
 const findIndex = (key: string) => {
@@ -40,7 +41,7 @@ const RecoveryScreen = ({ navigation }: AccessNavProps<'Recovery'>) => {
 
     React.useLayoutEffect(() => {
         navigation.setOptions({
-            headerTitle: '계정복구',
+            headerTitle: getString('계정복구'),
             headerLeft: () => (
                 <Button
                     onPress={() => {
@@ -136,7 +137,7 @@ const RecoveryScreen = ({ navigation }: AccessNavProps<'Recovery'>) => {
                 const loginResult = await login(pin);
                 if (!loginResult.succeeded) {
                     dispatch(ActionCreators.loadingAniModal({ visibility: false }));
-                    dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '로그인을 실패했습니다' }));
+                    dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('로그인을 실패했습니다') }));
                     return;
                 }
 
@@ -147,12 +148,12 @@ const RecoveryScreen = ({ navigation }: AccessNavProps<'Recovery'>) => {
             } else {
                 // Alert.alert('계정생성 실패');
                 dispatch(ActionCreators.loadingAniModal({ visibility: false }));
-                dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '계정생성 실패' }));
+                dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('계정생성 실패') }));
             }
         } catch (err) {
             console.log('createValidatorUser error = ', err);
             dispatch(ActionCreators.loadingAniModal({ visibility: false }));
-            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '계정 생성 중 오류가 발생했습니다' }));
+            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('계정 생성 중 오류가 발생했습니다') }));
         }
     };
 
