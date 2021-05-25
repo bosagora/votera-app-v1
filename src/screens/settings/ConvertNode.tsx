@@ -49,22 +49,22 @@ const ConvertNode = ({ navigation, route }: MainDrawerProps<'ConvertNode'>): JSX
     };
 
     const onClickRemoveNode = (memberId: string, nickname: string | null) => {
-        Alert.alert('노드 삭제', `${nickname} 를 삭제하시겠습니까?`, [
+        Alert.alert(getString('노드 삭제'), getString('${nickname} 를 삭제하시겠습니까?').replace('${nickname}', nickname || ''), [
             {
-                text: 'Cancel',
+                text: getString('취소'),
                 onPress: () => {
                     console.log('Cancel Pressed');
                 },
                 style: 'cancel',
             },
             {
-                text: 'OK',
+                text: getString('확인'),
                 onPress: () => {
                     dispatch(ActionCreators.loadingAniModal({ visibility: true }));
                     deleteVoterCard(memberId)
                         .then(() => {
                             dispatch(ActionCreators.loadingAniModal({ visibility: false }));
-                            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '삭제했습니다' }));
+                            dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('삭제했습니다') }));
                         })
                         .catch((err) => {
                             console.log('delteVoterCard error : ', err);
@@ -72,7 +72,7 @@ const ConvertNode = ({ navigation, route }: MainDrawerProps<'ConvertNode'>): JSX
                             dispatch(
                                 ActionCreators.snackBarVisibility({
                                     visibility: true,
-                                    text: '노드 삭제 중 오류 발생헀습니다',
+                                    text: getString('노드 삭제 중 오류 발생헀습니다'),
                                 }),
                             );
                         });
@@ -85,7 +85,7 @@ const ConvertNode = ({ navigation, route }: MainDrawerProps<'ConvertNode'>): JSX
         if (isGuest) {
             dispatch(ActionCreators.snackBarVisibility({
                 visibility: true,
-                text: '둘러보기 중에는 사용할 수 없습니다'
+                text: getString('둘러보기 중에는 사용할 수 없습니다')
             }));
         } else {
             navigation.navigate('AddNode');
@@ -97,7 +97,7 @@ const ConvertNode = ({ navigation, route }: MainDrawerProps<'ConvertNode'>): JSX
             dispatch(
                 ActionCreators.snackBarVisibility({
                     visibility: true,
-                    text: '노드 변경 시 오류 발생',
+                    text: getString('노드 변경 시 오류 발생'),
                 }),
             );
         });
@@ -187,7 +187,7 @@ const ConvertNode = ({ navigation, route }: MainDrawerProps<'ConvertNode'>): JSX
                     style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}
                     onPress={onClickAddNode}
                 >
-                    <Text style={[globalStyle.mtext, { color: themeContext.color.primary }]}>노드 추가인증</Text>
+                    <Text style={[globalStyle.mtext, { color: themeContext.color.primary }]}>{getString('노드 추가인증')}</Text>
                     <View
                         style={{
                             alignItems: 'center',

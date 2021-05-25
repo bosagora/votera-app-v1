@@ -41,7 +41,7 @@ const PendingAssess = (props: Props) => {
             dispatch(
                 ActionCreators.snackBarVisibility({
                     visibility: true,
-                    text: '입금이 확인되었습니다.',
+                    text: getString('입금이 확인되었습니다&#46;'),
                 }),
             );
             setTimeout(() => {
@@ -50,7 +50,7 @@ const PendingAssess = (props: Props) => {
         }
     }, [data]);
 
-    const renderButton = () => {
+    const RenderButton = (): JSX.Element => {
         switch (data?.proposalFee?.status) {
             case Enum_Fee_Status.Wait:
                 return (
@@ -95,7 +95,7 @@ const PendingAssess = (props: Props) => {
                                     dispatch(
                                         ActionCreators.snackBarVisibility({
                                             visibility: true,
-                                            text: '지갑 실행 중 오류가 발생했습니다',
+                                            text: getString('지갑 실행 중 오류가 발생했습니다&#46;'),
                                         }),
                                     );
                                 });
@@ -151,7 +151,7 @@ const PendingAssess = (props: Props) => {
     }
     return (
         <View>
-            <View style={{ alignItems: 'center' }}>
+            <View style={{ flex: 1, alignItems: 'center' }}>
                 <Text style={[globalStyle.btext, { fontSize: 20, color: themeContext.color.primary }]}>
                     {getString('사전 평가 준비')}
                 </Text>
@@ -184,14 +184,17 @@ const PendingAssess = (props: Props) => {
                 }`}</Text>
             </View>
             <View style={{ flexDirection: 'row', paddingBottom: 12 }}>
-                <Text style={defaultStyle}>입금금액 : </Text>
+                <Text style={defaultStyle}>{getString('입금금액')} : </Text>
                 <Text
                     style={[globalStyle.btext, { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 }]}
                 >
                     {getAmountFromBoaString(data?.proposalFee?.amount).toLocaleString()} BOA
                 </Text>
             </View>
-            {renderButton()}
+
+            <View style={{height: 50}}>
+                <RenderButton />
+            </View>
 
             <LineComponent />
 

@@ -15,6 +15,7 @@ import { feedClient } from '~/graphql/client';
 import { FeedFilterType } from '~/types/filterType';
 import FilterButton from '~/components/button/FilterButton';
 import { AuthContext } from '~/contexts/AuthContext';
+import getString from '~/utils/locales/STRINGS';
 
 const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
     const insets = useSafeAreaInsets();
@@ -26,7 +27,7 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
             headerTitle: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Image source={require('@assets/images/votera/voteraLogoWhite.png')} />
-                    <Text style={[globalStyle.btext, { color: 'white', fontSize: 16, paddingLeft: 7 }]}>알림</Text>
+                    <Text style={[globalStyle.btext, { color: 'white', fontSize: 16, paddingLeft: 7 }]}>{getString('알림')}</Text>
                 </View>
             ),
             headerLeft: () => (
@@ -162,7 +163,7 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
         return (
             <FeedCard
                 id={id}
-                content={feedContent || '오류'}
+                content={feedContent || getString('오류')}
                 date={createdAt}
                 isRead={newIsRead}
                 onPress={() => {
@@ -210,7 +211,7 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
                 >
                     <View style={[globalStyle.flexRowBetween, { paddingBottom: 2 }]}>
                         <View style={{ flexDirection: 'row' }}>
-                            <Text style={{ fontSize: 13, fontFamily: 'NotoSansCJKkrLight' }}>새알림</Text>
+                            <Text style={{ fontSize: 13, fontFamily: 'NotoSansCJKkrLight' }}>{getString('새알림')}</Text>
                             <Text style={{ fontSize: 13, fontFamily: 'NotoSansCJKkrLight', paddingLeft: 10 }}>
                                 {feedCount || 0}/{feedTotalCount || 0}
                             </Text>

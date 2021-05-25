@@ -9,6 +9,7 @@ import ActionCreators from '~/state/actions';
 import PinAuthScreen from '~/screens/access/common/PinAuthScreen';
 import NodeAuth from '~/screens/access/common/NodeAuth';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import getString from '~/utils/locales/STRINGS';
 
 const keys = [{ key: 'login' }, { key: 'node' }];
 
@@ -44,7 +45,7 @@ const LoginScreen = ({ navigation }: AccessNavProps<'Login'>) => {
             dispatch(
                 ActionCreators.snackBarVisibility({
                     visibility: true,
-                    text: '로그인 통신 중 오류 발생',
+                    text: getString('로그인 통신 중 오류 발생'),
                 }),
             );
         });

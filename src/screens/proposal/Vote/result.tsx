@@ -9,6 +9,7 @@ import CommonButton from '~/components/button/CommonButton';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import { openProposalResultLink } from '~/utils/linkutil';
 import ActionCreators from '~/state/actions';
+import getString from '~/utils/locales/STRINGS';
 
 interface VoteResultProps {
     data: any;
@@ -24,7 +25,7 @@ const VoteResult = (props: VoteResultProps) => {
         openProposalResultLink(proposal?.proposalId || '').catch((err) => {
             dispatch(ActionCreators.snackBarVisibility({
                 visibility: true,
-                text: '투표 결과 오픈 중 오류가 발생했습니다'
+                text: getString('투표 결과 오픈 중 오류가 발생했습니다')
             }));
         });
     }
@@ -37,16 +38,16 @@ const VoteResult = (props: VoteResultProps) => {
 
             <View style={{ alignItems: 'center', marginTop: 25 }}>
                 <Text style={[globalStyle.btext, { fontSize: 20, color: themeContext.color.primary }]}>
-                    투표 종료
+                    {getString('투표 종료')}
                 </Text>
                 <Text style={{ marginTop: 13 }}>
-                    투표가 종료되었습니다. 투표 결과를 확인하시려면 아래 버튼을 눌러주세요.
+                    {getString('투표가 종료되었습니다&#46; 투표 결과를 확인하시려면 아래 버튼을 눌러주세요&#46;')}
                 </Text>
             </View>
 
             <View style={{ flex: 1, justifyContent: 'center', marginVertical: 25 }}>
                 <CommonButton
-                    title="투표 결과 확인"
+                    title={getString('투표 결과 확인')}
                     containerStyle={{ borderRadius: 25, alignSelf: 'center' }}
                     buttonStyle={{
                         justifyContent: 'space-between',

@@ -134,7 +134,7 @@ const NoticeScreen = ({ navigation, route }: MainNavProps<'Notice'>) => {
                             paddingHorizontal: 22,
                         }}
                     >
-                        <Text style={globalStyle.ltext}>{`공지글 ${noticeData?.length}`}</Text>
+                        <Text style={globalStyle.ltext}>{getString('공지글 N').replace('N', (noticeData?.length || 0).toString())}</Text>
                     </View>
                 }
                 ListFooterComponent={<ListFooterButton onPress={() => console.log('click')} />}

@@ -25,6 +25,7 @@ import {
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
 import { MainNavProps } from '~/navigation/types/MainStackParams';
 import { AuthContext } from '~/contexts/AuthContext';
+import getString from '~/utils/locales/STRINGS';
 
 const TITLE_MAX_LENGTH = 100;
 // const HEADER_BG_WIDTH = Dimensions.get('window').width;
@@ -64,7 +65,7 @@ const CreateNoticeScreen = ({ navigation, route }: MainNavProps<'CreateNotice'>)
 
     React.useLayoutEffect(() => {
         navigation.setOptions({
-            title: '공지사항 작성',
+            title: getString('공지사항 작성'),
             headerTitleStyle: { ...globalStyle.headerTitle, color: 'white' },
             headerLeft: () => (
                 <Button
@@ -75,7 +76,7 @@ const CreateNoticeScreen = ({ navigation, route }: MainNavProps<'CreateNotice'>)
             ),
             headerRight: () => (
                 <ShortButton
-                    title="등록"
+                    title={getString('등록')}
                     titleStyle={[globalStyle.btext, { fontSize: 14, color: 'white' }]}
                     buttonStyle={{
                         backgroundColor: 'transparent',
@@ -206,22 +207,22 @@ const CreateNoticeScreen = ({ navigation, route }: MainNavProps<'CreateNotice'>)
                         paddingBottom: 100,
                     }}
                 >
-                    <RowWrapper label="공지사항 제목" mandatory={true}>
+                    <RowWrapper label={getString('공지사항 제목')} mandatory={true}>
                         <TextInputComponent
                             onChangeText={(text: string) => setTitle(text)}
                             value={title}
                             koreanInput
-                            placeholder="공지사항 제목을 입력해주세요."
+                            placeholder={getString('공지사항 제목을 입력해주세요&#46;')}
                             maxLength={TITLE_MAX_LENGTH}
                         />
                         {/* <TextInput placeholder='' onChangeText={(text: string) => setTitle(text)} /> */}
                     </RowWrapper>
 
-                    <RowWrapper label="공지사항 내용" mandatory={true}>
+                    <RowWrapper label={getString('공지사항 내용')} mandatory={true}>
                         <Input
                             value={description}
                             textAlignVertical="top"
-                            placeholder="공지사항 내용을 입력해주세요."
+                            placeholder={getString('공지사항 내용을 입력해주세요&#46;')}
                             multiline={true}
                             style={{ textAlignVertical: 'top', height: 255, paddingTop: 15, lineHeight: 23 }}
                             inputContainerStyle={{ borderBottomWidth: 0 }}
@@ -244,19 +245,19 @@ const CreateNoticeScreen = ({ navigation, route }: MainNavProps<'CreateNotice'>)
                         {/* <TextInput textAlignVertical='top' placeholder='공지사항 내용을 입력해주세요' multiline={true} style={{ textAlignVertical: 'top', height: 255, paddingTop: 15, lineHeight: 23 }} onChangeText={(text: string) => setDescription(text)} /> */}
                     </RowWrapper>
 
-                    <RowWrapper label="대표 이미지" subTitle="png와 jpg파일 1M이하로 등록">
+                    <RowWrapper label={getString('대표 이미지')} subTitle={getString('png와 jpg파일 1M이하로 등록')}>
                         <ImagePicker
                             onChangeImage={(image) => setMainImage(image)}
                             value={mainImage}
-                            placeholder={'대표 이미지를 등록해주세요'}
+                            placeholder={getString('대표 이미지를 등록해주세요')}
                         />
                     </RowWrapper>
 
-                    <RowWrapper label="자료 업로드" subTitle="png, jpg, pdf 파일 10M이하로 5개까지 등록">
+                    <RowWrapper label={getString('자료 업로드')} subTitle={getString('png, jpg, pdf 파일 10M이하로 5개까지 등록')}>
                         <DocumentPicker
                             onChangeFiles={(files) => setUploadFiles(files)}
                             value={uploadFiles}
-                            placeholder={'자료를 등록해주세요'}
+                            placeholder={getString('자료를 등록해주세요')}
                         />
                     </RowWrapper>
                 </View>

@@ -10,6 +10,7 @@ import Period from '~/components/status/Period';
 import DdayMark from '~/components/status/DdayMark';
 import styles, { HEADER_HEIGHT } from '../proposal/styles';
 import ProposalContent from '../proposal/ProposalContent';
+import getString from '~/utils/locales/STRINGS';
 
 const ProposalPreviewScreen = ({ navigation, route }: CreateNavProps<'ProposalPreview'>) => {
     const scroll = useRef(new Animated.Value(0)).current;
@@ -52,7 +53,7 @@ const ProposalPreviewScreen = ({ navigation, route }: CreateNavProps<'ProposalPr
                     }}
                 >
                     <Text style={[globalStyle.mtext, { fontSize: 11, color: 'white' }]}>
-                        {type === Enum_Proposal_Type.Business ? '사업제안' : '시스템제안'}
+                        {type === Enum_Proposal_Type.Business ? getString('사업제안') : getString('시스템제안')}
                     </Text>
                 </Animated.View>
                 <Text
@@ -64,7 +65,7 @@ const ProposalPreviewScreen = ({ navigation, route }: CreateNavProps<'ProposalPr
                 <Animated.View style={{ alignItems: 'center', opacity }}>
                     {assessPeriod?.begin && assessPeriod.end && (
                         <Period
-                            type="제안기간"
+                            type={getString('제안기간')}
                             typeStyle={{ fontSize: 14 }}
                             periodStyle={{ fontSize: 13 }}
                             color="white"
@@ -75,7 +76,7 @@ const ProposalPreviewScreen = ({ navigation, route }: CreateNavProps<'ProposalPr
 
                     {votePeriod?.begin && votePeriod.end && (
                         <Period
-                            type="투표기간"
+                            type={getString('투표기간')}
                             typeStyle={{ fontSize: 14 }}
                             periodStyle={{ fontSize: 13 }}
                             color="white"

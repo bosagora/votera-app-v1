@@ -38,13 +38,13 @@ const ChangePin = ({ navigation, route }: MainDrawerProps<'ChangePin'>): JSX.Ele
         changePassword(pwd)
             .then(() => {
                 dispatch(ActionCreators.loadingAniModal({ visibility: false }));
-                dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '변경 완료했습니다' }));
+                dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('변경 완료했습니다&#46;') }));
                 navigation.goBack();
             })
             .catch((err) => {
                 console.log('changePassword error : ', err);
                 dispatch(ActionCreators.loadingAniModal({ visibility: false }));
-                dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: '변경 실패했습니다.' }));
+                dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('변경 실패했습니다&#46;') }));
             });
     };
 

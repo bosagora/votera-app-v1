@@ -93,7 +93,7 @@ const VoteraDrawer = ({ navigation }: any) => {
                             },
                         ]}
                     >
-                        {user?.username || (isGuest ? 'Guest' : 'User 없음')}
+                        {user?.username || (isGuest ? 'Guest' : getString('User 없음'))}
                     </Text>
                 </View>
 
@@ -105,7 +105,7 @@ const VoteraDrawer = ({ navigation }: any) => {
                             dispatch(
                                 ActionCreators.snackBarVisibility({
                                     visibility: true,
-                                    text: '둘러보기 중에는 사용할 수 없습니다',
+                                    text: getString('둘러보기 중에는 사용할 수 없습니다'),
                                 }),
                             );
                         } else {
@@ -165,7 +165,7 @@ const VoteraDrawer = ({ navigation }: any) => {
                                 dispatch(
                                     ActionCreators.snackBarVisibility({
                                         visibility: true,
-                                        text: '둘러보기 중에는 사용할 수 없습니다',
+                                        text: getString('둘러보기 중에는 사용할 수 없습니다'),
                                     }),
                                 );
                             } else {

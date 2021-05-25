@@ -6,6 +6,7 @@ import { ThemeContext } from 'styled-components/native';
 import globalStyle from '~/styles/global';
 import { Icon, Text } from 'react-native-elements';
 import { VOTE_SELECT } from '~/utils/voterautil';
+import getString from '~/utils/locales/STRINGS';
 
 interface Props {
     type: VOTE_SELECT;
@@ -56,7 +57,7 @@ const VoteHistoryComponent = (props: Props) => {
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     {renderMark()}
                     <Text style={[globalStyle.btext, { marginLeft: 8, color }]}>
-                        {props.type === VOTE_SELECT.YES ? '찬성' : props.type === VOTE_SELECT.NO ? '반대' : '기권'}
+                        {props.type === VOTE_SELECT.YES ? getString('찬성') : props.type === VOTE_SELECT.NO ? getString('반대') : getString('기권')}
                     </Text>
                 </View>
             </View>

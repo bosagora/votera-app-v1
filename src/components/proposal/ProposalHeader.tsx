@@ -5,6 +5,7 @@ import { Text } from 'react-native-elements';
 
 import globalStyle from '~/styles/global';
 import { ProposalFilterType } from '~/types/filterType';
+import getString from '~/utils/locales/STRINGS';
 import FilterButton from '../button/FilterButton';
 
 interface ProposalHeaderProps {
@@ -27,8 +28,8 @@ const ProposalHeader = (props: ProposalHeaderProps): any => {
             ]}
         >
             <View style={{ paddingLeft: 15, flexDirection: 'row' }}>
-                <Text style={[globalStyle.btext]}>{username}</Text>
-                <Text> 님 환영합니다!</Text>
+                <Text style={[globalStyle.btext, { textAlignVertical: 'center' }]}>{username}</Text>
+                <Text>{getString(' 님 환영합니다!')}</Text>
             </View>
             <FilterButton filterType={ProposalFilterType} currentFilter={currentFilter} setFilter={setFilter} />
         </View>

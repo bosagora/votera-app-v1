@@ -73,7 +73,7 @@ const Terms = (props: TermsProps) => {
                         onPress={() => {
                             navigation.navigate('Common', {
                                 screen: 'WebView',
-                                params: { title: '인증회원약관', uri: getUserServiceTermURL() },
+                                params: { title: getString('인증회원약관'), uri: getUserServiceTermURL() },
                             });
                         }}
                     >
@@ -96,7 +96,7 @@ const Terms = (props: TermsProps) => {
                         onPress={() => {
                             navigation.navigate('Common', {
                                 screen: 'WebView',
-                                params: { title: '개인정보수집약관', uri: getPrivacyTermURL() },
+                                params: { title: getString('개인정보수집약관'), uri: getPrivacyTermURL() },
                             });
                         }}
                     >

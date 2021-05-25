@@ -240,7 +240,7 @@ const ProposalListScreen = ({ navigation, route }: MainNavProps<'ProposalList'>)
                                 dispatch(
                                     ActionCreators.snackBarVisibility({
                                         visibility: true,
-                                        text: '제안서 ID가 부여되지 않았습니다',
+                                        text: getString('제안서 정보가 올바르지 않습니다'),
                                     }),
                                 );
                             }

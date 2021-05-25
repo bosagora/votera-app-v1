@@ -3,6 +3,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-elements';
 import { Enum_Post_Status } from '~/graphql/generated/generated';
+import getString from '~/utils/locales/STRINGS';
 
 interface CommentCardProps {
     description: string;
@@ -29,7 +30,7 @@ const CommentCardContent = (props: CommentCardProps): any => {
                     <Text style={styles.font}>{description}</Text>
                 ) : (
                     <View style={styles.report}>
-                        <Text style={styles.font}>내가 신고한 답글입니다.</Text>
+                        <Text style={styles.font}>{getString('내가 신고한 답글입니다&#46;')}</Text>
                     </View>
                 ))}
 
@@ -38,7 +39,7 @@ const CommentCardContent = (props: CommentCardProps): any => {
                     <Text style={styles.font}>{description}</Text>
                 ) : (
                     <View style={styles.report}>
-                        <Text style={styles.font}>내가 신고한 답글입니다.</Text>
+                        <Text style={styles.font}>{getString('내가 신고한 답글입니다&#46;')}</Text>
                     </View>
                 ))}
         </View>

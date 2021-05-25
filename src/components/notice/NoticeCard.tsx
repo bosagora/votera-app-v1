@@ -175,7 +175,7 @@ const NoticeCard = (props: NoticeCardProps) => {
                 dispatch(
                     ActionCreators.snackBarVisibility({
                         visibility: true,
-                        text: '둘러보기 중에는 사용할 수 없습니다',
+                        text: getString('둘러보기 중에는 사용할 수 없습니다'),
                     }),
                 );
                 return;
@@ -257,7 +257,7 @@ const NoticeCard = (props: NoticeCardProps) => {
         if (isStopFetchMore || !replyCount || replyCount < 5) return null;
         return (
             <Button
-                title={'더보기'}
+                title={getString('더보기')}
                 onPress={() => {
                     if (fetchMore) {
                         const currentLength = comments?.length || 0;
@@ -282,9 +282,9 @@ const NoticeCard = (props: NoticeCardProps) => {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Text style={[globalStyle.mtext, { flex: 1, fontSize: 16 }]}>{noticeData.content[0].title}</Text>
                     <RegularButton>
-                        <Text style={[globalStyle.btext, { fontSize: 12, color: themeContext.color.primary }]}>{`답글 ${
-                            replyCount || 0
-                        }`}</Text>
+                        <Text style={[globalStyle.btext, { fontSize: 12, color: themeContext.color.primary }]}>
+                            {getString('답글 N').replace('N', replyCount?.toString() || '0')}
+                        </Text>
                     </RegularButton>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 18 }}>
@@ -318,7 +318,7 @@ const NoticeCard = (props: NoticeCardProps) => {
                                             dispatch(
                                                 ActionCreators.snackBarVisibility({
                                                     visibility: true,
-                                                    text: '다운로드가 완료 되었습니다.',
+                                                    text: getString('다운로드가 완료 되었습니다'),
                                                 }),
                                             );
                                         })
@@ -329,7 +329,9 @@ const NoticeCard = (props: NoticeCardProps) => {
                     </View>
                     <View style={{ marginVertical: 28 }}>
                         <View style={globalStyle.flexRowBetween}>
-                            <Text>{`${replyCount}개 답글`}</Text>
+                            <Text>
+                                {getString('N개 답글').replace('N', replyCount?.toString() || '0')}
+                            </Text>
                             <ShortButton
                                 title={getString('새로고침')}
                                 titleStyle={{ fontSize: 10 }}
@@ -371,7 +373,7 @@ const NoticeCard = (props: NoticeCardProps) => {
                         onlyRead={false}
                         value={text}
                         onChangeText={setText}
-                        placeholder="이곳에 자유롭게 글을 남겨주세요"
+                        placeholder={getString('이곳에 자유롭게 글을 남겨주세요')}
                         onPress={() => createComment()}
                     />
 

@@ -72,7 +72,7 @@ const PendingVote: React.FC<Props> = (props) => {
         }
     };
 
-    const renderButton = () => {
+    const RenderButton = (): JSX.Element => {
         switch (data?.voteFee?.status) {
             case Enum_Fee_Status.Wait:
                 return (
@@ -112,7 +112,7 @@ const PendingVote: React.FC<Props> = (props) => {
                                         dispatch(
                                             ActionCreators.snackBarVisibility({
                                                 visibility: true,
-                                                text: getString('지갑 실행 중 오류가 발생했습니다'),
+                                                text: getString('지갑 실행 중 오류가 발생했습니다&#46;'),
                                             }),
                                         );
                                     });
@@ -184,9 +184,9 @@ const PendingVote: React.FC<Props> = (props) => {
 
             {data?.voteFee?.status === Enum_Fee_Status.Wait && (
                 <>
-                    <Text style={[globalStyle.btext, { color: themeContext.color.disagree }]}>주의사항</Text>
+                    <Text style={[globalStyle.btext, { color: themeContext.color.disagree }]}>{getString('주의사항')}</Text>
                     <Text style={{ marginTop: 13, lineHeight: 23 }}>
-                        {`투표 비용을 입금해야 투표가 시작될 수 있습니다.`}
+                        {getString(`투표 비용을 입금해야 투표가 시작될 수 있습니다&#46;`)}
                     </Text>
                 </>
             )}
@@ -199,11 +199,14 @@ const PendingVote: React.FC<Props> = (props) => {
                     {getAmountFromBoaString(data?.voteFee?.proposal?.vote_fee).toLocaleString()} BOA
                 </Text>
             </View>
-            {renderButton()}
+
+            <View style={{height: 50}}>
+                <RenderButton />
+            </View>
 
             <LineComponent />
 
-            <Text style={[globalStyle.btext, { marginTop: 12, marginBottom: 15 }]}>제안요약</Text>
+            <Text style={[globalStyle.btext, { marginTop: 12, marginBottom: 15 }]}>{getString('제안요약')}</Text>
             <View style={{ flexDirection: 'row' }}>
                 <Text style={defaultStyle}>Proposal ID</Text>
                 <Text style={[globalStyle.ltext, { ...defaultStyle, marginLeft: 19 }]}>{`${

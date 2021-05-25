@@ -61,7 +61,7 @@ const ProposalCard = (props: ProposalCardProps): any => {
                     />
                 )}
             </View>
-            <View style={{ paddingVertical: Platform.OS === 'android' ? 0 : 13 }}>
+            <View style={{ paddingVertical: Platform.OS === 'android' ? 13 : 13 }}>
                 <Text style={[globalStyle.btext, styles.fontTitles]}>{title}</Text>
                 <Text numberOfLines={1} style={styles.fontDescriptions}>
                     {description}

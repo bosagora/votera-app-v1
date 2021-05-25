@@ -11,6 +11,7 @@ import { AuthContext } from '~/contexts/AuthContext';
 import { parseQrcodeValidatorLogin } from '~/utils/voterautil';
 import ActionCreators from '~/state/actions';
 import { CreateNavProps } from '~/navigation/types/CreateStackParams';
+import getString from '~/utils/locales/STRINGS';
 
 const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
     const themeContext = useContext(ThemeContext);
@@ -27,7 +28,7 @@ const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
         if (!member) {
             dispatch(ActionCreators.snackBarVisibility({
                 visibility: true,
-                text: '현재 디바이스에서 사용자 정보를 찾을 수 없습니다'
+                text: getString('현재 디바이스에서 사용자 정보를 찾을 수 없습니다')
             }));
             popToMain();
         }
@@ -35,7 +36,7 @@ const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
 
     React.useLayoutEffect(() => {
         navigation.setOptions({
-            title: '노드 갱신하기',
+            title: getString('노드 갱신하기'),
             headerTitleStyle: { ...globalStyle.headerTitle, color: 'white' },
             headerLeft: () => (
                 <Button
@@ -68,7 +69,7 @@ const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
                     dispatch(
                         ActionCreators.snackBarVisibility({
                             visibility: true,
-                            text: '노드 주소가 일치하지 않습니다',
+                            text: getString('노드 주소가 일치하지 않습니다'),
                         })
                     );
                     return;
@@ -81,7 +82,7 @@ const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
 
                 dispatch(ActionCreators.snackBarVisibility({
                     visibility: true,
-                    text: '노드 인증 실패',
+                    text: getString('노드 인증 실패'),
                 }));
             }
         };
@@ -98,21 +99,21 @@ const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
 
     return (
         <View style={{ flex: 1, paddingTop: 45, paddingHorizontal: 22, }}>
-            <Text style={[globalStyle.btext, { color: 'black' }]}>갱신 대상 노드 : {`${member?.nodename}`}</Text>
+            <Text style={[globalStyle.btext, { color: 'black' }]}>{getString('갱신 대상 노드')} : {`${member?.nodename}`}</Text>
             {member?.address && (<Text style={[globalStyle.gmtext, { fontSize: 12, lineHeight: 20, marginTop: 17 }]}>{`${member.address}`}</Text>)}
-            {!member?.address && (<Text style={[globalStyle.gmtext, { fontSize: 12, lineHeight: 20, marginTop: 17, color: themeContext.color.disagree }]}>노드 주소 정보가 없습니다</Text>)}
-            <Text style={{ lineHeight: 23, marginTop: 63 }}>{`유효한 노드 정보가 없거나 유효기간이 지났습니다.\n노드 정보 갱신이 필요합니다.`}</Text>
+            {!member?.address && (<Text style={[globalStyle.gmtext, { fontSize: 12, lineHeight: 20, marginTop: 17, color: themeContext.color.disagree }]}>{getString('노드 주소 정보가 없습니다')}</Text>)}
+            <Text style={{ lineHeight: 23, marginTop: 63 }}>{getString(`유효한 노드 정보가 없거나 유효기간이 지났습니다&#46;\n노드 정보 갱신이 필요합니다&#46;`)}</Text>
             <View style={{ marginTop: 63 }}>
-                <Text style={[globalStyle.btext, { color: themeContext.color.disagree }]}>주의사항</Text>
+                <Text style={[globalStyle.btext, { color: themeContext.color.disagree }]}>{getString('주의사항')}</Text>
                 <Text style={{ lineHeight: 23, marginTop: 13 }}>
-                    {`- 해당 노드의 주소와 `}
-                    <Text style={[globalStyle.btext, { color: themeContext.color.primary }]}>40,000 보아</Text>
-                    {` 이상 보유하고 있는지 확인하시고 인증해 주시기 바랍니다.`}
+                    - {getString(`해당 노드의 주소와 `)}
+                    <Text style={[globalStyle.btext, { color: themeContext.color.primary }]}>40,000 BOA</Text>
+                    {getString(` 이상 보유하고 있는지 확인하시고 인증해 주시기 바랍니다.`)}
                 </Text>
             </View>
             <View style={{ flex: 1, justifyContent: 'center' }}>
                 <CommonButton
-                    title="노드 인증하기"
+                    title={getString('노드 인증하기')}
                     containerStyle={{ borderRadius: 25, alignSelf: 'center' }}
                     buttonStyle={{
                         justifyContent: 'space-between',

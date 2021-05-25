@@ -5,6 +5,7 @@ import { ThemeContext } from 'styled-components/native';
 import CommonButton from '~/components/button/CommonButton';
 import globalStyle from '~/styles/global';
 import Clipboard from 'expo-clipboard';
+import getString from '~/utils/locales/STRINGS';
 
 interface CompleteProps {
     onComplete: () => void;
@@ -21,12 +22,12 @@ const CompleteScreen = (props: CompleteProps) => {
                         globalStyle.btext,
                         { fontSize: 17, color: themeContext.color.primary, textAlign: 'center' },
                     ]}
-                >{`계정이 성공적으로 복구되었습니다.`}</Text>
+                >{getString(`계정이 성공적으로 복구되었습니다&#46;`)}</Text>
             </View>
 
             <View style={{ flex: 1, justifyContent: 'center' }}>
                 <CommonButton
-                    title="복구하기"
+                    title={getString('복구하기')}
                     buttonStyle={{ justifyContent: 'space-between', paddingHorizontal: 21, width: 209 }}
                     filled
                     onPress={() => props.onComplete()}

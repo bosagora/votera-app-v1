@@ -3,6 +3,8 @@ import { ThemeContext } from 'styled-components/native';
 import { Icon, Text } from 'react-native-elements';
 import TextInputComponent from '~/components/input/SingleLineInput2';
 import globalStyle from '~/styles/global';
+import getString from '~/utils/locales/STRINGS';
+
 
 interface NodeNameScreenProps {
     validator: string;
@@ -33,11 +35,11 @@ const NodeNameScreen = (props: NodeNameScreenProps) => {
 
     return (
         <>
-            <Text style={[globalStyle.btext, { color: 'black' }]}>인증된 노드 주소</Text>
+            <Text style={[globalStyle.btext, { color: 'black' }]}>{getString('인증된 노드 주소')}</Text>
             <Text style={[globalStyle.gmtext, { fontSize: 12, lineHeight: 20, marginTop: 17 }]}>{`${validator}`}</Text>
             <Text
                 style={{ lineHeight: 23, marginTop: 40 }}
-            >{`노드의 닉네임을 입력해주세요!\n추후 내 설정에서 언제든 변경할 수 있습니다.`}</Text>
+            >{getString(`노드의 닉네임을 입력해주세요!\n추후 내 설정에서 언제든 변경할 수 있습니다&#46;`)}</Text>
             <TextInputComponent
                 style={{ marginTop: 32 }}
                 inputStyle={{ color: themeContext.color.primary }}
@@ -53,7 +55,7 @@ const NodeNameScreen = (props: NodeNameScreenProps) => {
                         />
                     ) : null
                 }
-                placeholderText="노드 닉네임을 입력해주세요"
+                placeholderText={getString('노드 닉네임을 입력해주세요')}
             />
         </>
     );

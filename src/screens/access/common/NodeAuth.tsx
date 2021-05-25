@@ -115,7 +115,7 @@ const NodeAuth = (props: AuthProps) => {
     const ScanedScreen = () => {
         return (
             <KeyboardAwareScrollView style={{ flex: 1 }} enableResetScrollToCoords={false} scrollEnabled={false}>
-                <Text style={[globalStyle.btext, { color: 'black' }]}>인증된 노드 주소</Text>
+                <Text style={[globalStyle.btext, { color: 'black' }]}>{getString('인증된 노드 주소')}</Text>
                 <Text style={[globalStyle.gmtext, { fontSize: 12, lineHeight: 20, marginTop: 17 }]}>
                     {`${validator}`}
                 </Text>

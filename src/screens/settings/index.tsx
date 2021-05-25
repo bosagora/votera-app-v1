@@ -195,7 +195,7 @@ const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element 
                                 dispatch(
                                     ActionCreators.snackBarVisibility({
                                         visibility: true,
-                                        text: '둘러보기 중에는 사용할 수 없습니다',
+                                        text: getString('둘러보기 중에는 사용할 수 없습니다'),
                                     }),
                                 );
                             } else {
@@ -213,7 +213,7 @@ const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element 
                             // if (isGuest) {
                             //     dispatch(ActionCreators.snackBarVisibility({
                             //         visibility: true,
-                            //         text: '둘러보기 중에는 사용할 수 없습니다'
+                            //         text: getString('둘러보기 중에는 사용할 수 없습니다')
                             //     }));
                             // } else {
                                 navigation.navigate('ConvertNode');
@@ -240,7 +240,7 @@ const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element 
                         navigation.navigate('Common', {
                             screen: 'WebView',
                             params: {
-                                title: '이용약관',
+                                title: getString('이용약관'),
                                 uri: getUserServiceTermURL(),
                             },
                         });
