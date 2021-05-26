@@ -206,26 +206,51 @@ export function makeVoteLinkData(proposal_id: string, validator_login: Validator
     return ballot_data.getLinkData();
 }
 
-const BOA_DECIMAL = boasdk.JSBI.BigInt(10000000);
-const NUM_DECIMAL = 10000000;
-const BOA_ZERO = boasdk.JSBI.BigInt(0);
+export const BOA_DECIMAL = boasdk.JSBI.BigInt(10000000);
+export const BOA_ZERO = boasdk.JSBI.BigInt(0);
+const LENGTH_DECIMAL = 7;
 
-export function getAmountAsBoaString(amount?: number): string {
+export function AmountToString(amount: boasdk.JSBI | undefined | null, comma: boolean = false): string {
     if (!amount) return '0';
-    const boaAmount = boasdk.JSBI.multiply(boasdk.JSBI.BigInt(amount), BOA_DECIMAL);
-    return boaAmount.toString();
+    const share = boasdk.JSBI.divide(amount, BOA_DECIMAL);
+    const remain = boasdk.JSBI.remainder(amount, BOA_DECIMAL);
+    const tx_share = (comma) ? share.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') : share.toString();
+    if (boasdk.JSBI.equal(remain, BOA_ZERO)) {
+        return tx_share;
+    } else {
+        let tx_remain = remain.toString();
+        if (tx_remain.length < LENGTH_DECIMAL) {
+            tx_remain = tx_remain.padStart(LENGTH_DECIMAL, '0');
+        }
+        return tx_share + '.' + tx_remain.replace(/0+$/g, '');
+    }
 }
 
-export function getAmountFromBoaString(boaAmount?: string | null): number {
-    if (!boaAmount || boaAmount === '') return 0;
-    const jsbiBoaAmount = boasdk.JSBI.BigInt(boaAmount);
-    const amount = boasdk.JSBI.divide(jsbiBoaAmount, BOA_DECIMAL);
-    const remain = boasdk.JSBI.remainder(jsbiBoaAmount, BOA_DECIMAL);
-    if (boasdk.JSBI.equal(remain, BOA_ZERO)) {
-        return boasdk.JSBI.toNumber(amount);
+export function StringToAmount(amount: string | null | undefined): boasdk.JSBI {
+    if (!amount || amount === '') return boasdk.JSBI.BigInt(0);
+    const numbers = amount.replace(/,/gi, '').split('.');
+    if (numbers.length == 1) {
+        return boasdk.JSBI.multiply(boasdk.JSBI.BigInt(numbers[0]), BOA_DECIMAL);
+    } else if (numbers.length == 2) {
+        let tx_remain = numbers[1];
+        if (tx_remain.length > LENGTH_DECIMAL) {
+            tx_remain = tx_remain.slice(0, LENGTH_DECIMAL);
+        } else if (tx_remain.length < LENGTH_DECIMAL) {
+            tx_remain = tx_remain.padEnd(LENGTH_DECIMAL, '0');
+        }
+        const share = boasdk.JSBI.multiply(boasdk.JSBI.BigInt(numbers[0]), BOA_DECIMAL);
+        return boasdk.JSBI.add(share, boasdk.JSBI.BigInt(tx_remain));
     } else {
-        const numAmount = boasdk.JSBI.toNumber(amount);
-        const numRemain = boasdk.JSBI.toNumber(remain) / NUM_DECIMAL;
-        return numAmount + numRemain;
+        throw new Error('invalid number format');
     }
+}
+
+export function StringToAmountFormat(amount: string | null | undefined): string {
+    return AmountToString(boasdk.JSBI.BigInt(amount || '0'), true);
+}
+
+export function calculateProposalFee(amount: boasdk.JSBI, ratio: string): boasdk.JSBI {
+    const fundRatio = StringToAmount(ratio);
+    const proposalFee = boasdk.JSBI.divide(boasdk.JSBI.multiply(amount, fundRatio), BOA_DECIMAL);
+    return proposalFee;
 }

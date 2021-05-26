@@ -46,7 +46,7 @@ export interface LocalStorageProposalProps {
     name: string;
     description: string;
     type: string;
-    fundingFee?: number;
+    fundingFee?: string;
     startDate?: string;
     endDate?: string;
     status: string;

@@ -1,13 +1,17 @@
+import { JSBI } from 'boa-sdk-ts';
 import { httpLinkURI, voteResultURL } from '../../config/ServerConfig';
 import { Agora } from '~/graphql/generated/generated';
+import { BOA_ZERO, BOA_DECIMAL } from './voterautil';
 
 let privacyTermUrl: string = `${httpLinkURI}/privacy.html`;
 let userServiceTermUrl: string = `${httpLinkURI}/userService.html`;
 let proposalVoteResultUrl: string = `${voteResultURL}/` + '${}';
-let proposalFeeRatio: number = 0.01;
+let proposalFeeRatio: string = '0.01';
+let proposalFundMin : JSBI = BOA_ZERO;
+let proposalFundMax : JSBI = JSBI.multiply(JSBI.BigInt(Number.MAX_SAFE_INTEGER), BOA_DECIMAL);
 
 
-export function setAgoraConf(agora: Pick<Agora, 'privacyTermUrl' | 'userServiceTermUrl' | 'voteResultUrl' | 'ProposalFeeRatio'> | undefined) {
+export function setAgoraConf(agora: Pick<Agora, 'privacyTermUrl' | 'userServiceTermUrl' | 'voteResultUrl' | 'ProposalFeeRatio' | 'ProposalFundMin' | 'ProposalFundMax'> | undefined) {
     if (!agora) {
         return;
     }
@@ -33,8 +37,33 @@ export function setAgoraConf(agora: Pick<Agora, 'privacyTermUrl' | 'userServiceT
     }
     if (agora.ProposalFeeRatio) {
         if (agora.ProposalFeeRatio > 0 && agora.ProposalFeeRatio < 1) {
-            proposalFeeRatio = agora.ProposalFeeRatio;
+            proposalFeeRatio = agora.ProposalFeeRatio.toString();
         }
+    }
+    try {
+        if (agora.ProposalFundMin || agora.ProposalFundMax) {
+            let fundMin = proposalFundMin;
+            let fundMax = proposalFundMax;
+    
+            if (agora.ProposalFundMin) {
+                fundMin = JSBI.BigInt(agora.ProposalFundMin);
+                if (JSBI.lessThan(fundMin, JSBI.BigInt(0))) {
+                    fundMin = proposalFundMin;
+                } else if (JSBI.greaterThan(fundMin, proposalFundMax)) {
+                    fundMin = proposalFundMin;
+                }
+            }
+            if (agora.ProposalFundMax) {
+                fundMax = JSBI.BigInt(agora.ProposalFundMax);
+                if (JSBI.lessThan(fundMax, fundMin)) {
+                    fundMax = proposalFundMax;
+                }
+            }
+
+            proposalFundMax = fundMax;
+            proposalFundMin = fundMin;
+        }
+    } catch (e) {
     }
 }
 
@@ -53,4 +82,11 @@ export function getProposalVoteResultURL(proposalId: string) {
 
 export function getProposalFeeRatio() {
     return proposalFeeRatio;
+}
+
+export function isValidFundAmount(amount: JSBI | undefined | null): boolean {
+    if (!amount) return false;
+    if (JSBI.lessThan(amount, proposalFundMin)) return false;
+    if (JSBI.greaterThan(amount, proposalFundMax)) return false;
+    return true;
 }

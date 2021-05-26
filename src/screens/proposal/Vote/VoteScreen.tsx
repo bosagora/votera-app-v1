@@ -220,10 +220,13 @@ const VoteScreen = (props: Props) => {
     if (proposal?.status === Enum_Proposal_Status.PendingVote) {
         return (
             <View onLayout={(event) => {
-                console.log('VoteScreen onLayout = ', event.nativeEvent.layout);
                 onLayout(event.nativeEvent.layout.height);
             }}>
-                <PendingVote />
+                <PendingVote
+                    onChangeStatus={() => {
+                        console.log('detect vote fee paid');
+                    }}
+                />
             </View>
         );
     }

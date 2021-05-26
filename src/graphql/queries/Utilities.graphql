@@ -11,6 +11,8 @@ query VoteraConfiguration {
     }
     agora {
         ProposalFeeRatio
+        ProposalFundMin
+        ProposalFundMax
         userServiceTermUrl
         privacyTermUrl
         voteResultUrl

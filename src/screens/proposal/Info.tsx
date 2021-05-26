@@ -15,7 +15,7 @@ import { getProposalStatusString } from '~/components/status/ProgressMark';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import ActionCreators from '~/state/actions';
 import getString from '~/utils/locales/STRINGS';
-import { getAmountFromBoaString } from '~/utils/voterautil';
+import { StringToAmountFormat } from '~/utils/voterautil';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -104,7 +104,7 @@ const Info = (props: Props) => {
                                 { ...defaultStyle, color: themeContext.color.primary, marginLeft: 18 },
                             ]}
                         >
-                            {getAmountFromBoaString(data.fundingAmount).toLocaleString()} BOA
+                            {StringToAmountFormat(data.fundingAmount)} BOA
                         </Text>
                     </View>
                 )}

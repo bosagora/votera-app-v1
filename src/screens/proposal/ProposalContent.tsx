@@ -117,6 +117,7 @@ const ProposalContent = (props: ProposalContentProps) => {
                             onChangeStatus={() => {
                                 if (fetchProposal) fetchProposal(proposal.proposalId || '');
                                 setIndex(0);
+                                setTab2Height('auto');
                             }}
                         />
                     );

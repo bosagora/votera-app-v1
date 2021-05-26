@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Image, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native-elements';
 import { ThemeContext } from 'styled-components/native';
@@ -6,21 +6,24 @@ import { useDispatch } from 'react-redux';
 import moment from 'moment';
 import globalStyle from '~/styles/global';
 import CommonButton from '~/components/button/CommonButton';
-import { Proposal, useGetVoteFeeQuery, Enum_Fee_Status, Enum_Proposal_Type } from '~/graphql/generated/generated';
-import { makeFundProposalDataLinkData, makeSystemProposalDataLinkData, getAmountFromBoaString } from '~/utils/voterautil';
+import { useGetVoteFeeQuery, Enum_Fee_Status, Enum_Proposal_Type } from '~/graphql/generated/generated';
+import { makeFundProposalDataLinkData, makeSystemProposalDataLinkData, StringToAmountFormat } from '~/utils/voterautil';
 import { openProposalDataLink } from '~/utils/linkutil';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import ActionCreators from '~/state/actions';
 import getString from '~/utils/locales/STRINGS';
 
-interface Props {}
+interface Props {
+    onChangeStatus: () => void;
+}
 
 const LineComponent: React.FC = () => (
     <View style={{ height: 1, width: '100%', backgroundColor: 'rgb(235,234,239)', marginVertical: 30 }} />
 );
 
-const PendingVote: React.FC<Props> = (props) => {
+const PendingVote = (props: Props) => {
     const { proposal } = useContext(ProposalContext);
+    const [lastStatus, setLastStatus] = useState<Enum_Fee_Status>();
     const themeContext = useContext(ThemeContext);
     const dispatch = useDispatch();
     const defaultStyle = { lineHeight: 25 };
@@ -31,6 +34,22 @@ const PendingVote: React.FC<Props> = (props) => {
             id: proposal?.id || '',
         },
         fetchPolicy: 'cache-and-network',
+        onCompleted: (data) => {
+            if (data.voteFee?.status === Enum_Fee_Status.Paid) {
+                if (lastStatus === Enum_Fee_Status.Wait) {
+                    dispatch(ActionCreators.snackBarVisibility({
+                        visibility: true,
+                        text: getString('입금이 확인되었습니다&#46;'),
+                    }));
+                    setTimeout(() => {
+                        props.onChangeStatus();
+                    }, 2000);
+                }
+            }
+            if (data.voteFee?.status) {
+                setLastStatus(data.voteFee.status);
+            }
+        },
     });
 
     const makeLinkData = () => {
@@ -196,7 +215,7 @@ const PendingVote: React.FC<Props> = (props) => {
                 <Text
                     style={[globalStyle.btext, { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 }]}
                 >
-                    {getAmountFromBoaString(data?.voteFee?.proposal?.vote_fee).toLocaleString()} BOA
+                    {StringToAmountFormat(data?.voteFee?.proposal?.vote_fee)} BOA
                 </Text>
             </View>
 
@@ -223,7 +242,7 @@ const PendingVote: React.FC<Props> = (props) => {
                             { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 },
                         ]}
                     >
-                        {getAmountFromBoaString(proposal?.fundingAmount).toLocaleString()} BOA
+                        {StringToAmountFormat(proposal?.fundingAmount)} BOA
                     </Text>
                 </View>
             )}
