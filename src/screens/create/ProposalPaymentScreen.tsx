@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import globalStyle from '~/styles/global';
 import CommonButton from '~/components/button/CommonButton';
 import { useGetProposalFeeQuery, Enum_Fee_Status, Enum_Proposal_Type } from '~/graphql/generated/generated';
-import { makeProposalFeeDataLinkData, getAmountFromBoaString } from '~/utils/voterautil';
+import { makeProposalFeeDataLinkData, StringToAmountFormat } from '~/utils/voterautil';
 import { openProposalFeeLink } from '~/utils/linkutil';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import ActionCreators from '~/state/actions';
@@ -206,7 +206,7 @@ const ProposalPayment = ({ navigation, route }: CreateNavProps<'ProposalPayment'
                             { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 },
                         ]}
                     >
-                        {getAmountFromBoaString(data?.proposalFee?.amount).toLocaleString()} BOA
+                        {StringToAmountFormat(data?.proposalFee?.amount)} BOA
                     </Text>
                 </View>
                 {renderButton()}
@@ -230,7 +230,7 @@ const ProposalPayment = ({ navigation, route }: CreateNavProps<'ProposalPayment'
                                 { ...defaultStyle, color: themeContext.color.primary, marginLeft: 19 },
                             ]}
                         >
-                            {getAmountFromBoaString(proposal?.fundingAmount).toLocaleString()} BOA
+                            {StringToAmountFormat(proposal?.fundingAmount)} BOA
                         </Text>
                     </View>
                 )}

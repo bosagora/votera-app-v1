@@ -120,15 +120,19 @@ const RecoveryScreen = ({ navigation }: AccessNavProps<'Recovery'>) => {
                     );
                     if (member) {
                         await registerVoterCard(member.id, member.username, member.address, validatorLogin);
-                        addMembers.forEach((addMember) => {
+                        addMembers.forEach(async (addMember) => {
                             if (addMember && addMember.id !== member.id) {
-                                registerVoterCard(addMember.id, addMember.username, addMember.address);
+                                registerVoterCard(addMember.id, addMember.username, addMember.address).catch((err) => {
+                                    console.log('registerVoterCard error = ', err);
+                                });
                             }
                         });
                     } else {
-                        addMembers.forEach((addMember) => {
+                        addMembers.forEach(async (addMember) => {
                             if (addMember) {
-                                registerVoterCard(addMember.id, addMember.username, addMember.address);
+                                registerVoterCard(addMember.id, addMember.username, addMember.address).catch((err) => {
+                                    console.log('registerVoterCard error = ', err);
+                                });
                             }
                         });
                     }

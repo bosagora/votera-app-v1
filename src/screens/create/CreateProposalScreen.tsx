@@ -9,6 +9,7 @@ import { ImagePickerResult } from 'expo-image-picker';
 import { DocumentResult } from 'expo-document-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import moment from 'moment';
+import {JSBI} from 'boa-sdk-ts';
 import globalStyle from '~/styles/global';
 import ActionCreators from '~/state/actions';
 import RadioButton from '~/components/button/radio';
@@ -35,8 +36,8 @@ import { AuthContext } from '~/contexts/AuthContext';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import { OpenWhere, ProjectWhere } from '~/graphql/hooks/Proposals';
 import push from '~/services/FcmService';
-import { ValidatorLogin, getAmountAsBoaString } from '~/utils/voterautil';
-import { getProposalFeeRatio } from '~/utils/agoraconf';
+import { ValidatorLogin, StringToAmount, AmountToString, calculateProposalFee, BOA_ZERO } from '~/utils/voterautil';
+import { getProposalFeeRatio, isValidFundAmount } from '~/utils/agoraconf';
 import getString from '~/utils/locales/STRINGS';
 
 interface RowProps {
@@ -122,7 +123,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
     const [logoImage, setLogoImage] = useState<ImagePickerResult>();
     const [mainImage, setMainImage] = useState<ImagePickerResult>();
     const [uploadFiles, setUploadFiles] = useState<DocumentResult[]>([]);
-    const [boa, setBoa] = useState<number>();
+    const [boa, setBoa] = useState<JSBI>(BOA_ZERO);
     const [loadFromSaveData, setLoadFromSaveData] = useState(false);
     const [createError, setCreateError] = useState<{ errorName: string } | undefined>();
     const [createProposal] = useCreateProposalMutation();
@@ -136,7 +137,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
         setLogoImage(undefined);
         setMainImage(undefined);
         setUploadFiles([]);
-        setBoa(0);
+        setBoa(BOA_ZERO);
         setLoadFromSaveData(false);
     };
 
@@ -181,7 +182,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
             }
 
             // check valid range of boa
-            if (proposalType === Enum_Proposal_Type.Business && (!boa || boa < 0 || boa > Number.MAX_SAFE_INTEGER)) {
+            if (proposalType === Enum_Proposal_Type.Business && !isValidFundAmount(boa)) {
                 setCreateError({ errorName: 'fundingAmount'});
                 dispatch(
                     ActionCreators.snackBarVisibility({
@@ -230,7 +231,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 type: proposalType,
                 logo: uploadedLogoImageUrl,
                 attachment: uploadedAttachmentUrls as string[],
-                fundingAmount: getAmountAsBoaString(boa),
+                fundingAmount: boa.toString(),
                 proposer_address: validatorLogin.validator,
                 creator: user?.memberId,
                 status:
@@ -377,7 +378,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 setTitle(saveData.name || '');
                 setDescription(saveData.description || '');
                 setProposalType(saveData.type as Enum_Proposal_Type);
-                if (saveData.fundingFee) setBoa(saveData.fundingFee);
+                if (saveData.fundingFee) setBoa(JSBI.BigInt(saveData.fundingFee));
                 if (saveData.startDate || saveData.endDate) {
                     setDate(convertStringToDay(saveData.startDate, saveData.endDate));
                 }
@@ -422,7 +423,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 name: title,
                 description,
                 type: proposalType.toString(),
-                fundingFee: boa,
+                fundingFee: boa.toString(),
                 startDate: date?.startDate?.dateString,
                 endDate: date?.endDate?.dateString,
                 status: 'TEMP',
@@ -499,8 +500,8 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                     {proposalType === Enum_Proposal_Type.Business && (
                         <RowWrapper label={getString('요청 금액')} mandatory={true}>
                             <TextInputComponent
-                                onChangeText={(text: string) => setBoa(text ? parseInt(text.replace(/,/gi, '')) : 0)}
-                                value={boa ? boa.toLocaleString() : ''}
+                                onChangeText={(text: string) => setBoa(StringToAmount(text))}
+                                value={AmountToString(boa, true)}
                                 placeholder={getString('요청할 BOA 수량을 입력해주세요&#46;')}
                                 maxLength={TITLE_MAX_LENGTH}
                                 subComponent={<Text>BOA</Text>}
@@ -510,7 +511,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                                 <Text style={{ fontFamily: 'RobotoRegular' }}>
                                     {getString('수수료')}{' '}
                                     <Text style={{ color: themeContext.color.primary }}>
-                                        {((boa ? boa : 0) * getProposalFeeRatio()).toLocaleString()}
+                                        {AmountToString(calculateProposalFee(boa, getProposalFeeRatio()), true)}
                                     </Text>{' '}
                                     BOA
                                 </Text>
@@ -588,7 +589,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                                         begin: date.startDate && new Date(date.startDate?.timestamp),
                                         end: date.endDate && new Date(date.endDate?.timestamp),
                                     },
-                                    fundingAmount: getAmountAsBoaString(boa),
+                                    fundingAmount: boa.toString(),
                                     logoImage,
                                     mainImage,
                                 })

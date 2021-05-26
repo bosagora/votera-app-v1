@@ -99,7 +99,7 @@ const Evaluating = (props: Props) => {
             attractiveness !== undefined &&
             expansion !== undefined
         )
-            setAllcheck(true);
+        setAllcheck(true);
     }, [completeness, realization, profitability, attractiveness, expansion]);
 
     return (

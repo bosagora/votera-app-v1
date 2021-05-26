@@ -75,8 +75,16 @@ const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
                     return;
                 }
 
-                updateVoterCard(member.memberId || '', loginData);
-                navigation.goBack();
+                updateVoterCard(member.memberId || '', loginData)
+                    .then(() => {
+                        navigation.goBack();
+                    })
+                    .catch((err) => {
+                        dispatch(ActionCreators.snackBarVisibility({
+                            visibility: true,
+                            text: getString('노드 정보 갱신 중 오류가 발생했습니다'),
+                        }));
+                    })
             } catch (err) {
                 console.log('checkNode error = ', err);
 

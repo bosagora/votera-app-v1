@@ -143,6 +143,7 @@
     "노드 갱신하기": "renew node",
     "노드 주소가 일치하지 않습니다": "Invalid node address",
     "노드 인증 실패": "Node Verification fail",
+    "노드 정보 갱신 중 오류가 발생했습니다": "Error occurred while updating Node",
     "갱신 대상 노드": "nodes for renewal",
     "노드 주소 정보가 없습니다": "There aren't any node address",
     "유효한 노드 정보가 없거나 유효기간이 지났습니다&#46;\n노드 정보 갱신이 필요합니다&#46;": "No valid node information&#46; Also, your noded could be out of date&#46;",
