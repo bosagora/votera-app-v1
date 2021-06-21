@@ -10,7 +10,7 @@ import getString from '~/utils/locales/STRINGS';
 export const getFeed = (type: Enum_Feeds_Type, content: any) => {
     let feedContent: string | undefined;
 
-    const { version, userName, activityName, groupName, proposalTitle, questionTitle, comment } = content;
+    const { userName, proposalTitle } = content;
 
     switch (type) {
         case Enum_Feeds_Type.NewProposal:
@@ -46,19 +46,9 @@ export const getFeed = (type: Enum_Feeds_Type, content: any) => {
 
     return { feedContent };
 };
-String.prototype.allReplace = function (obj: any): string {
-    let retStr: any = this;
-    for (const x in obj) {
-        retStr = retStr.replace(new RegExp(x, 'g'), obj[x]);
-    }
-    return retStr;
-};
 
 export const getNavigationType = (type: Enum_Feeds_Type, navigationParams: any, navigation: any) => {
-    let notifyTitle: string | undefined;
-    let feedContent: string | undefined;
-
-    const { groupId, proposalId, memberId, activityId, activityType, postId, status } = navigationParams;
+    const { proposalId, activityId } = navigationParams;
 
     switch (type) {
         case Enum_Feeds_Type.NewProposalNotice: 
@@ -75,6 +65,4 @@ export const getNavigationType = (type: Enum_Feeds_Type, navigationParams: any, 
         default:
             break;
     }
-
-    return { notifyTitle, feedContent };
 };

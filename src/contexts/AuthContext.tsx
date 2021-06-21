@@ -1,26 +1,23 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import React, { useState, useCallback, useEffect } from 'react';
+import messaging from '@react-native-firebase/messaging';
 import { getLocale, setLocale } from '@utils/locales/STRINGS';
 import {
     useGetFeedsConnectionLazyQuery,
     useLoginMutation,
-    useUpdateUserMutation,
+    useUpdatePasswordMutation,
     useCreateMemberMutation,
     useUpdateMemberMutation,
     useDeleteMemberMutation,
+    useUpdatePushTokenMutation,
 } from '~/graphql/generated/generated';
-import LocalStorage, {
-    LocalStorageProps,
-    LocalStorageUserProps,
-    LocalStorageVoterCardProps,
-} from '~/utils/LocalStorage';
+import LocalStorage, { LocalStorageProps, LocalStorageUserProps } from '~/utils/LocalStorage';
 import { ValidatorLogin } from '~/utils/voterautil';
 import { AUTHCONTEXT_AUTH_COOKIE } from '../../config/keys';
 import { generateHashPin } from '~/utils/crypto';
 import client, { setToken, resetToken } from '~/graphql/client';
-import push from '~/services/FcmService';
-import { useCreatePush, useUpdatePush } from '~/graphql/hooks/Push';
-import { useCreateFollow } from '~/graphql/hooks/Follow';
+import pushService from '~/services/FcmService';
+import { PushStatusType } from '~/types/pushType';
 
 export type User = {
     memberId: string; // 현재 사용중인 memberId
@@ -57,10 +54,6 @@ type AuthContextState = {
     feedAddress: string | undefined;
     feedCount: number;
     refetchFeedConnection: any;
-    setSnackbarMessage: (meesage: string) => void;
-    setSnackbarVisible: (value: boolean) => void;
-    visible: boolean;
-    message: string;
     loaded: boolean; // LocalStorage Loading 여부
     isGuest: boolean;
     setGuestMode: (flag: boolean) => void;
@@ -80,6 +73,7 @@ type AuthContextState = {
     deleteVoterCard: (memberId: string, recovery?: boolean) => Promise<void>;
     getVoterCard: (memberId: string) => ValidatorLogin | null;
     getVoterName: (memberId: string) => string | null;
+    getVoteSequence: () => number;
     isValidVoterCard: (memberId: string) => boolean;
     setLocalUser: (user: User) => Promise<void>;
     getLocalUser: () => User;
@@ -116,7 +110,6 @@ let localStorage: LocalStorageProps = {
     groupBookmarks: [],
     activityBookmarks: [],
     searchHistory: [],
-    feed: {},
 };
 
 function normalizeLocalStorage(storage: LocalStorageProps): LocalStorageProps {
@@ -127,12 +120,6 @@ function normalizeLocalStorage(storage: LocalStorageProps): LocalStorageProps {
             groupBookmarks: [],
             activityBookmarks: [],
             searchHistory: [],
-            feed: {
-                isEtcNews: false,
-                isLikeProposalsNews: false,
-                isMyProposalsNews: false,
-                isNewProposalNews: false,
-            },
         };
     }
     if (
@@ -150,12 +137,6 @@ function normalizeLocalStorage(storage: LocalStorageProps): LocalStorageProps {
         groupBookmarks: storage.groupBookmarks || [],
         activityBookmarks: storage.activityBookmarks || [],
         searchHistory: storage.searchHistory || [],
-        feed: storage.feed || {
-            isEtcNews: false,
-            isLikeProposalsNews: false,
-            isMyProposalsNews: false,
-            isNewProposalNews: false,
-        },
     };
 }
 
@@ -223,32 +204,41 @@ function getLocalUser(): User {
     return localUser;
 }
 
+const MAX_VOTE_SEQUENCE = 2^31 - 1;
+
+function getVoteSequence() {
+    return Math.floor(Math.random() * MAX_VOTE_SEQUENCE);
+}
+
 export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
     const [userState, setUserState] = useState<User>();
     const [routeLoaded, setRouteLoaded] = useState(false);
     const [feedAddress, setFeedAddress] = useState<string | undefined>();
     const [feedCount, setFeedCount] = useState<number>(0);
     const [myMemberIds, setMyMemberIds] = useState<string[]>([]);
-    const [message, setMessage] = useState('');
-    const [visible, setVisible] = useState(false);
 
     const [loaded, setLoaded] = useState(false);
     const [isGuest, setGuestMode] = useState(false);
     const [enrolled, setEnrolled] = useState(false);
     const [loginMutate] = useLoginMutation({ fetchPolicy: 'no-cache' });
-    const [updateUserMutate] = useUpdateUserMutation({ fetchPolicy: 'no-cache' });
+    const [updatePasswordMutate] = useUpdatePasswordMutation({ fetchPolicy: 'no-cache' });
     const [createMemberMutate] = useCreateMemberMutation();
     const [updateMemberMutate] = useUpdateMemberMutation();
     const [deleteMemberMutate] = useDeleteMemberMutation();
 
-    const createPush = useCreatePush();
-    const updatePush = useUpdatePush();
-    const createFollow = useCreateFollow();
+    const [updatePushTokenMutate] = useUpdatePushTokenMutation();
 
     const [
         getFeedsConnections,
         { data: feedsConnectionData, refetch: refetchFeedConnection },
-    ] = useGetFeedsConnectionLazyQuery({ fetchPolicy: 'no-cache' });
+    ] = useGetFeedsConnectionLazyQuery({
+        fetchPolicy: 'no-cache',
+        onCompleted: (data) => {
+            if (data.feedsConnection?.aggregate) {
+                setFeedCount(data.feedsConnection.aggregate.count || 0);
+            }
+        }
+    });
 
     const initializeAuthContext = useCallback(async () => {
         localStorage = normalizeLocalStorage(await LocalStorage.get());
@@ -274,46 +264,97 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
         initializeAuthContext().catch((err) => {
             console.log('init error = ', err);
         });
+
+        let unsubMessage: () => void;
+        let unsubNotification: () => void;
+        let unsubRefresh: () => void;
+
+        const pushInit = async () => {
+            const tokenOnDevice = await pushService.getPushNotificationTokenOnDevice();
+            if (tokenOnDevice) {
+                unsubNotification = messaging().onNotificationOpenedApp((message) => {
+                });
+                unsubMessage = messaging().onMessage((message) => {
+                });
+                unsubRefresh = messaging().onTokenRefresh((token) => {
+                    pushService.updateRefreshTokenOnLocalStorage(token)
+                        .catch((err) => {
+                            console.log('updateRefreshTokenOnLocalStorage error : ', err);
+                        });
+                });
+            }
+        };
+
+        pushInit().catch((err) => {
+            console.log('pushInit error : ', err);
+        })
+
+        return () => {
+            if (unsubMessage) unsubMessage();
+            if (unsubNotification) unsubNotification();
+            if (unsubRefresh) unsubRefresh();
+        }
     }, []);
 
-    const usePushUpdate = useCallback(
-        async (feedAddress: string, targetMemberId: string) => {
-            const pushUpdateHandler = async (feedAddress: string) => {
-                const pushNotificationToken = await push.getPushNotificationTokenOnDevice();
-                if (!pushNotificationToken) {
-                    throw new Error('Fail to create PushToken');
-                }
+    const pushUpdate = useCallback(
+        async (userId: string) => {
+            const pushChanged = await pushService.checkPushTokenChangeOnLocalStorage();
+            if (!pushChanged) {
+                return;
+            }
 
-                const { token: pushToken, tokenStatus, enablePush } = pushNotificationToken;
-
-                if (tokenStatus === 'NEW_TOKEN') {
-                    const createdPush = await createPush(pushToken);
-                    const pushId = createdPush?.data?.createPush?.push?.id as string;
-                    if (!pushId) {
-                        console.log('createPush failed');
+            const tokenOnDevice = await pushService.getPushNotificationTokenOnDevice();
+            if (!tokenOnDevice) {
+                await pushService.disablePushTokenOnLocalStorage();
+            } else if (tokenOnDevice.tokenStatus === PushStatusType.NEW_TOKEN) {
+                const result = await updatePushTokenMutate({
+                    variables: {
+                        input: {
+                            where: { id: userId },
+                            data: { pushToken: tokenOnDevice.token },
+                        },
+                    },
+                });
+                if (result.data?.updateUserPushToken?.userFeed?.id
+                    && result.data?.updateUserPushToken?.userFeed?.pushes
+                    && result.data?.updateUserPushToken?.userFeed?.pushes.length > 0) {
+                    const push = result.data.updateUserPushToken.userFeed.pushes[0];
+                    if (push?.id) {
+                        await pushService.updatePushTokenOnLocalStorage(push.id, tokenOnDevice.token, push.isActive);
                     }
-                    const createdPushLocalStorageData = await push.useCreateTokenToLocalPushStorage(
-                        pushId,
-                        pushToken,
-                        enablePush,
-                    );
-
-                    await createFollow(
-                        feedAddress,
-                        ['appAll', targetMemberId],
-                        pushId,
-                        createdPushLocalStorageData.enablePush,
-                    ).catch(console.log);
-                } else if (tokenStatus === 'RENEW_TOKEN') {
-                    const updateTokenSet = await push.useUpdateTokenToLocalPushStorage(pushToken);
-                    updatePush(updateTokenSet.id, updateTokenSet.token).catch(console.log);
                 }
-            };
-            return pushUpdateHandler(feedAddress).catch((err) => {
-                console.log('pushUpdate exception : ', err);
-            });
+            } else if (tokenOnDevice.tokenStatus === PushStatusType.RENEW_TOKEN) {
+                const data = await pushService.getCurrentPushLocalStorage();
+                if (data?.id) {
+                    const result = await updatePushTokenMutate({
+                        variables: {
+                            input: {
+                                where: { id: userId },
+                                data: {
+                                    pushId: data.id,
+                                    pushToken: tokenOnDevice.token,
+                                },
+                            },
+                        },
+                    });
+                    if (result.data?.updateUserPushToken?.userFeed?.id
+                        && result.data?.updateUserPushToken?.userFeed?.pushes
+                        && result.data?.updateUserPushToken?.userFeed?.pushes.length > 0) {
+                        const push = result.data.updateUserPushToken.userFeed.pushes[0];
+                        if (push?.id) {
+                            await pushService.updatePushTokenOnLocalStorage(data.id, tokenOnDevice.token, push.isActive);
+                        }
+                    }
+                }
+            } else {
+                const data = await pushService.getCurrentPushLocalStorage();
+                if (data?.id) {
+                    // TODO : read current status from database
+                    await pushService.updatePushTokenOnLocalStorage(data.id, tokenOnDevice.token, data.enablePush);
+                }
+            }
         },
-        [createPush, updatePush],
+        [updatePushTokenMutate],
     );
 
     const login = useCallback(
@@ -333,25 +374,40 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
 
                 if (userState) {
                     const loginResult = await loginMutate({ variables: { input: { identifier: mail, password } } });
-                    if (loginResult.data?.login) {
-                        if (!loginResult.data.login.jwt) {
+                    if (loginResult.data?.loginEx) {
+                        if (!loginResult.data.loginEx.jwt) {
                             return {
                                 succeeded: false,
                                 message: 'password mismatched',
                             };
                         }
 
-                        await usePushUpdate(userState.userId, userState.memberId).catch(console.log);
+                        setToken(loginResult.data.loginEx.jwt);
+
+                        await pushUpdate(userState.userId).catch((err) => {
+                            console.log('pushUpdate error : ', err);
+                        });
+
+                        if (loginResult.data.loginEx.user?.user_feed) {
+                            const userFeed = loginResult.data.loginEx.user?.user_feed;
+                            pushService.setUserAlarmStatus({
+                                isMyProposalsNews: userFeed.myProposalsNews,
+                                isNewProposalNews: userFeed.newProposalsNews,
+                                isLikeProposalsNews: userFeed.likeProposalsNews,
+                                isMyCommentNews: userFeed.myCommentsNews,
+                                isEtcNews: userFeed.etcNews,
+                            });
+                        }
 
                         return {
                             succeeded: true,
-                            user: { ...userState, token: loginResult.data.login.jwt },
+                            user: { ...userState, token: loginResult.data.loginEx.jwt },
                         };
                     }
                 } else {
                     const loginResult = await loginMutate({ variables: { input: { identifier: mail, password } } });
-                    if (loginResult.data?.login) {
-                        if (!loginResult.data.login.jwt) {
+                    if (loginResult.data?.loginEx) {
+                        if (!loginResult.data.loginEx.jwt) {
                             return {
                                 succeeded: false,
                                 message: 'password mismatched',
@@ -360,7 +416,7 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
 
                         const memberId = localStorage.user.memberId || localStorage.members[0].memberId;
                         const nodename = getVoterName(memberId) || '';
-                        const userData = loginResult.data.login.user;
+                        const userData = loginResult.data.loginEx.user;
                         const loginUser: User = {
                             memberId,
                             nodename,
@@ -368,14 +424,29 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
                             username: userData.username,
                             mail,
                             validator: localStorage.user.userValidator,
-                            token: loginResult.data.login.jwt,
+                            token: loginResult.data.loginEx.jwt,
                         };
 
-                        setToken(loginResult.data.login.jwt);
-                        setFeedAddress(userData.id);
+                        setToken(loginResult.data.loginEx.jwt);
+                        setFeedAddress(userData.user_feed?.id);
                         setUserState(loginUser);
                         setMyMemberIds(localStorage.members.map((member) => member.memberId));
-                        await usePushUpdate(userData.id, memberId).catch(console.log);
+
+                        await pushUpdate(userData.id).catch((err) => {
+                            console.log('pushUpdate error : ', err);
+                        });
+
+                        if (loginResult.data.loginEx.user.user_feed) {
+                            const userFeed = loginResult.data.loginEx.user.user_feed;
+                            pushService.setUserAlarmStatus({
+                                isMyProposalsNews: userFeed.myProposalsNews,
+                                isNewProposalNews: userFeed.newProposalsNews,
+                                isLikeProposalsNews: userFeed.likeProposalsNews,
+                                isMyCommentNews: userFeed.myCommentsNews,
+                                isEtcNews: userFeed.etcNews,
+                            });
+                        }
+                        
                         return {
                             succeeded: true,
                             user: loginUser,
@@ -408,7 +479,7 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
             const password = generateHashPin(pin, userState.validator);
 
             try {
-                const updateResult = await updateUserMutate({
+                const updateResult = await updatePasswordMutate({
                     variables: {
                         input: {
                             where: {
@@ -421,7 +492,7 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
                     },
                 });
 
-                if (updateResult.data?.updateUser?.user) {
+                if (updateResult.data?.updatePassword?.user) {
                     return;
                 } else {
                     throw new Error('update password failed');
@@ -431,20 +502,19 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
                 throw new Error('update password failed');
             }
         },
-        [updateUserMutate, userState],
+        [updatePasswordMutate, userState],
     );
 
     const signOut = useCallback(() => {
-        if (userState) {
-            setUserState(undefined);
-        }
-        feedAddress && setFeedAddress(feedAddress);
+        setFeedAddress(undefined);
+        setUserState(undefined);
         setMyMemberIds([]);
+        setFeedCount(0);
         resetToken();
         client.clearStore().catch((err) => {
             console.log('clearStore error ', err);
         });
-    }, [userState]);
+    }, []);
 
     const setLocalUser = useCallback(async (user: User) => {
         const localUser = getLocalStorageUser();
@@ -462,11 +532,12 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
         localStorage.members = [];
         LocalStorage.set(localStorage)
             .then(() => {
-                feedAddress && setFeedAddress(feedAddress);
+                setFeedAddress(undefined);
                 setUserState(undefined);
                 setMyMemberIds([]);
-                resetToken();
                 setEnrolled(false);
+                setFeedCount(0);
+                resetToken();
             })
             .catch((err) => {
                 console.log('LocalStorage.set error = ', err);
@@ -477,27 +548,17 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
      *
      */
     const fetchFeedConnection = useCallback(() => {
-        getFeedsConnections({
-            variables: {
-                where: {
-                    target: feedAddress,
-                    isRead: false,
+        if (userState?.userId) {
+            getFeedsConnections({
+                variables: {
+                    where: {
+                        target: userState.userId,
+                        isRead: false,
+                    },
                 },
-            },
-        });
-    }, [feedAddress, getFeedsConnections]);
-
-    useEffect(() => {
-        if (feedsConnectionData) {
-            setFeedCount(feedsConnectionData.feedsConnection?.aggregate?.count || 0);
+            });
         }
-    }, [feedsConnectionData]);
-
-    useEffect(() => {
-        if (feedCount) {
-            setFeedCount(feedCount);
-        }
-    }, [feedCount]);
+    }, [userState?.userId, getFeedsConnections]);
 
     const registerVoterCard = useCallback(
         async (
@@ -583,18 +644,6 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
                 localStorage.members[findIndex].votercard = validatorLogin.toString();
                 localStorage.members[findIndex].expiresIn = expires.getTime();
             }
-
-            // if (feedAddress) {
-            //     //pushID, pushToken, enablePush 없음 에러나서 주석처리
-            //     const createdPushLocalStorageData = await push.useCreateTokenToLocalPushStorage(pushId, pushToken, enablePush);
-
-            //     await createFollow(
-            //         feedAddress,
-            //         [addMember.id],
-            //         createdPushLocalStorageData.id,
-            //         createdPushLocalStorageData.enablePush,
-            //     ).catch(console.log);
-            // }
 
             await LocalStorage.set(localStorage);
             setMyMemberIds(localStorage.members.map((member) => member.memberId));
@@ -735,13 +784,6 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
         [deleteMemberMutate, userState],
     );
 
-    const setSnackbarMessage = useCallback((msg: string) => {
-        setMessage(msg);
-    }, []);
-    const setSnackbarVisible = useCallback((value: boolean) => {
-        setVisible(value);
-    }, []);
-
     return (
         <AuthContext.Provider
             value={{
@@ -755,10 +797,6 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
                 feedAddress,
                 feedCount,
                 refetchFeedConnection,
-                setSnackbarMessage,
-                setSnackbarVisible,
-                visible,
-                message,
                 loaded,
                 isGuest,
                 setGuestMode,
@@ -776,6 +814,7 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
                 setLocalUser,
                 getLocalUser,
                 getMember,
+                getVoteSequence,
             }}
         >
             {children}

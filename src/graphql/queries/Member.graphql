@@ -30,6 +30,10 @@ mutation CreateValidatorUser($input: createValidatorUserInput) {
                 username
             }
         }
+        push {
+            id
+            isActive
+        }
     }
 }
 
@@ -44,6 +48,10 @@ mutation RecoverValidatorUser($input: recoverValidatorUserInput) {
                 address
                 username
             }
+        }
+        push {
+            id
+            isActive
         }
     }
 }

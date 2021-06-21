@@ -1,82 +1,62 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { View, Image, ScrollView, Switch } from 'react-native';
+import { useDispatch } from 'react-redux';
 import { Button, Text } from 'react-native-elements';
 import * as Application from 'expo-application';
+import { debounce } from 'lodash';
 import { MainDrawerProps } from '~/navigation/types/MainDrawerParams';
 import globalStyle from '~/styles/global';
-import LocalStorage, { LocalStorageFeedProps } from '~/utils/LocalStorage';
 import { ThemeContext } from 'styled-components/native';
-import { useUpdateTargetsFollowMutation } from '~/graphql/generated/generated';
-import { FeedStatusType } from '~/types/alarmType';
+import { useUpdateAlarmStatusMutation } from '~/graphql/generated/generated';
+import { FeedProps } from '~/types/alarmType';
 import { getAppUpdate } from '~/utils/device';
 import { AuthContext } from '~/contexts/AuthContext';
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
 import getString from '~/utils/locales/STRINGS';
+import pushService from '~/services/FcmService';
+import ActionCreators from '~/state/actions';
 
 const Alarm = ({ navigation, route }: MainDrawerProps<'Alarm'>): JSX.Element => {
     const themeContext = useContext(ThemeContext);
-    const { feedAddress, isGuest } = useContext(AuthContext);
-
-    const [feedStatus, setFeedStatus] = useState<LocalStorageFeedProps>();
-    const [updateTargetsFollow] = useUpdateTargetsFollowMutation();
-
-    function updateFeedLocalStorage(renewLocalStorageFeedProps: LocalStorageFeedProps) {
-        LocalStorage.get().then((localData) => {
-            localData.feed = renewLocalStorageFeedProps;
-            LocalStorage.set(localData);
-            setFeedStatus(localData.feed);
-        });
-    }
-
-    function updateFollows({ targets, value }: { targets: string[]; value: boolean }) {
-        updateTargetsFollow({
-            variables: {
-                input: {
-                    member: feedAddress,
-                    targets,
-                    isActive: value,
-                },
-            },
-        }).catch(console.log);
-    }
-    // TODO: 각 타입별 타겟(proposalId 등)을 추출하는 로직(or 쿼리)가 필요
-    function getTargets(type: FeedStatusType): string[] {
-        let targets: string[] = [];
-        switch (type) {
-            case FeedStatusType.MY_PROPOSALS_NEWS:
-                targets = ['proposal1'];
-                break;
-            case FeedStatusType.LIKE_PROPOSALS_NEWS:
-                targets = ['proposal2'];
-                break;
-            case FeedStatusType.NEW_PROPOSAL_NEWS:
-                targets = ['proposal3'];
-                break;
-            case FeedStatusType.ETC_NEWS:
-                targets = ['proposal4'];
-                break;
-            default:
-                break;
-        }
-        return targets;
-    }
+    const dispatch = useDispatch();
+    const { isGuest, user } = useContext(AuthContext);
+    const [feedStatus, setFeedStatus] = useState<FeedProps>();
+    const [updateAlarmMutate] = useUpdateAlarmStatusMutation();
 
     useEffect(() => {
-        LocalStorage.get().then((localData) => {
-            let currentFeedStatus: LocalStorageFeedProps = localData.feed;
-            if (!currentFeedStatus) {
-                currentFeedStatus = {
-                    isEtcNews: true,
-                    isLikeProposalsNews: true,
-                    isMyProposalsNews: true,
-                    isNewProposalNews: true,
-                };
-                localData.feed = currentFeedStatus;
-                LocalStorage.set(localData);
-            }
-            setFeedStatus(currentFeedStatus);
-        });
+        setFeedStatus(pushService.getUserAlarmStatus());
     }, []);
+
+    const updateAlarm = useCallback(
+        debounce(async () => {
+            const alarmStatus = pushService.getUserAlarmStatus();
+            const result = await updateAlarmMutate({
+                variables: {
+                    input: {
+                        where: {
+                            id: user?.userId || '',
+                        },
+                        data: {
+                            alarmStatus: {
+                                myProposalsNews: alarmStatus.isMyProposalsNews,
+                                likeProposalsNews: alarmStatus.isLikeProposalsNews,
+                                newProposalsNews: alarmStatus.isNewProposalNews,
+                                myCommentsNews: alarmStatus.isMyCommentNews,
+                                etcNews: alarmStatus.isEtcNews,
+                            },
+                        },
+                    },
+                },
+            });
+            if (!result.data?.updateUserAlarmStatus?.userFeed?.id) {
+                dispatch(ActionCreators.snackBarVisibility({
+                    visibility: true,
+                    text: getString('사용자 설정 오류로 변경 실패'),
+                }))
+            }
+        }, 500),
+        [updateAlarmMutate, user]
+    )
 
     React.useLayoutEffect(() => {
         navigation.setOptions({
@@ -124,13 +104,12 @@ const Alarm = ({ navigation, route }: MainDrawerProps<'Alarm'>): JSX.Element => 
                             style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
                             trackColor={{ true: themeContext.color.primary, false: themeContext.color.black }}
                             disabled={isGuest}
-                            value={feedStatus?.isMyProposalsNews}
+                            value={feedStatus?.isMyProposalsNews || false}
                             onValueChange={(value) => {
-                                let currentFeedStatus = feedStatus as LocalStorageFeedProps;
-                                currentFeedStatus.isMyProposalsNews = value;
-                                updateFeedLocalStorage(currentFeedStatus);
-                                const targets = getTargets(FeedStatusType.MY_PROPOSALS_NEWS);
-                                updateFollows({ targets, value });
+                                setFeedStatus(pushService.setUserAlarmStatus({
+                                    isMyProposalsNews: value,
+                                }));
+                                updateAlarm();
                             }}
                             thumbColor={'white'}
                         />
@@ -141,13 +120,12 @@ const Alarm = ({ navigation, route }: MainDrawerProps<'Alarm'>): JSX.Element => 
                             style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
                             trackColor={{ true: themeContext.color.primary, false: themeContext.color.black }}
                             disabled={isGuest}
-                            value={feedStatus?.isLikeProposalsNews}
+                            value={feedStatus?.isLikeProposalsNews || false}
                             onValueChange={(value) => {
-                                let currentFeedStatus = feedStatus as LocalStorageFeedProps;
-                                currentFeedStatus.isLikeProposalsNews = value;
-                                updateFeedLocalStorage(currentFeedStatus);
-                                const targets = getTargets(FeedStatusType.LIKE_PROPOSALS_NEWS);
-                                updateFollows({ targets, value });
+                                setFeedStatus(pushService.setUserAlarmStatus({
+                                    isLikeProposalsNews: value,
+                                }));
+                                updateAlarm();
                             }}
                             thumbColor={'white'}
                         />
@@ -158,13 +136,28 @@ const Alarm = ({ navigation, route }: MainDrawerProps<'Alarm'>): JSX.Element => 
                             style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
                             trackColor={{ true: themeContext.color.primary, false: themeContext.color.black }}
                             disabled={isGuest}
-                            value={feedStatus?.isNewProposalNews}
+                            value={feedStatus?.isNewProposalNews || false}
                             onValueChange={(value) => {
-                                let currentFeedStatus = feedStatus as LocalStorageFeedProps;
-                                currentFeedStatus.isNewProposalNews = value;
-                                updateFeedLocalStorage(currentFeedStatus);
-                                const targets = getTargets(FeedStatusType.NEW_PROPOSAL_NEWS);
-                                updateFollows({ targets, value });
+                                setFeedStatus(pushService.setUserAlarmStatus({
+                                    isNewProposalNews: value,
+                                }));
+                                updateAlarm();
+                            }}
+                            thumbColor={'white'}
+                        />
+                    </View>
+                    <View style={[globalStyle.flexRowBetween, { height: 40 }]}>
+                        <Text style={{ fontSize: 13 }}>{getString('내 게시글에 대한 반응')}</Text>
+                        <Switch
+                            style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                            trackColor={{ true: themeContext.color.primary, false: themeContext.color.black }}
+                            disabled={isGuest}
+                            value={feedStatus?.isMyCommentNews || false}
+                            onValueChange={(value) => {
+                                setFeedStatus(pushService.setUserAlarmStatus({
+                                    isMyCommentNews: value,
+                                }));
+                                updateAlarm();
                             }}
                             thumbColor={'white'}
                         />
@@ -175,13 +168,12 @@ const Alarm = ({ navigation, route }: MainDrawerProps<'Alarm'>): JSX.Element => 
                             style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
                             trackColor={{ true: themeContext.color.primary, false: themeContext.color.black }}
                             disabled={isGuest}
-                            value={feedStatus?.isEtcNews}
+                            value={feedStatus?.isEtcNews || false}
                             onValueChange={(value) => {
-                                let currentFeedStatus = feedStatus as LocalStorageFeedProps;
-                                currentFeedStatus.isEtcNews = value;
-                                updateFeedLocalStorage(currentFeedStatus);
-                                const targets = getTargets(FeedStatusType.ETC_NEWS);
-                                updateFollows({ targets, value });
+                                setFeedStatus(pushService.setUserAlarmStatus({
+                                    isEtcNews: value,
+                                }));
+                                updateAlarm();
                             }}
                             thumbColor={'white'}
                         />

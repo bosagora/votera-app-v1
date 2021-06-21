@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { BarCodeScanner, BarCodeEvent, BarCodeBounds } from 'expo-barcode-scanner';
-import { View, Alert, Modal, LayoutRectangle, Platform, Linking, NativeModules } from 'react-native';
+import { View, Alert, Modal, LayoutRectangle, Linking } from 'react-native';
 import { Button, Icon, Header, Text } from 'react-native-elements';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Device from 'expo-device';
@@ -37,7 +37,6 @@ const QRCodeLoading = (props: QRCodeLoadingProps): JSX.Element | null => {
 };
 
 const QRCodeScanner = (): JSX.Element => {
-    const { RNAndroidOpenSettings } = NativeModules;
     const qrcodeScanner = useSelector((store: ActionCreatorsState) => store.qrcodeScanner);
     const dispatch = useDispatch();
     const themeContext = useContext(ThemeContext);
@@ -123,11 +122,7 @@ const QRCodeScanner = (): JSX.Element => {
                 {
                     text: getString('이동'),
                     onPress: () => {
-                        if (Platform.OS === 'ios') {
-                            Linking.openURL('app-settings:');
-                        } else {
-                            RNAndroidOpenSettings.appDetailsSettings();
-                        }
+                        Linking.openSettings();
                     },
                 },
             ],

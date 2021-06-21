@@ -10,6 +10,7 @@ import { useGetVoteFeeQuery, Enum_Fee_Status, Enum_Proposal_Type } from '~/graph
 import { makeFundProposalDataLinkData, makeSystemProposalDataLinkData, StringToAmountFormat } from '~/utils/voterautil';
 import { openProposalDataLink } from '~/utils/linkutil';
 import { ProposalContext } from '~/contexts/ProposalContext';
+import { AuthContext } from '~/contexts/AuthContext';
 import ActionCreators from '~/state/actions';
 import getString from '~/utils/locales/STRINGS';
 
@@ -23,6 +24,7 @@ const LineComponent: React.FC = () => (
 
 const PendingVote = (props: Props) => {
     const { proposal } = useContext(ProposalContext);
+    const { user } = useContext(AuthContext);
     const [lastStatus, setLastStatus] = useState<Enum_Fee_Status>();
     const themeContext = useContext(ThemeContext);
     const dispatch = useDispatch();
@@ -219,9 +221,11 @@ const PendingVote = (props: Props) => {
                 </Text>
             </View>
 
-            <View style={{height: 50}}>
-                <RenderButton />
-            </View>
+            {proposal?.creator?.id === user?.memberId && (
+                <View style={{height: 50}}>
+                    <RenderButton />
+                </View>
+            )}
 
             <LineComponent />
 

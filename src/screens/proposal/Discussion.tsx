@@ -17,10 +17,8 @@ import {
 import ActionCreators from '~/state/actions';
 import globalStyle from '~/styles/global';
 import ShortButton from '~/components/button/ShortButton';
-import { useCreateFollow } from '~/graphql/hooks/Follow';
 import { AuthContext } from '~/contexts/AuthContext';
 import { ProposalContext } from '~/contexts/ProposalContext';
-import push from '~/services/FcmService';
 import { ThemeContext } from 'styled-components/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import getString from '~/utils/locales/STRINGS';
@@ -36,7 +34,7 @@ interface DiscussionProps {
 
 const Discussion = (props: DiscussionProps) => {
     const { id, moveToNotice, onLayout } = props;
-    const { user, feedAddress, isGuest } = useContext(AuthContext);
+    const { user, isGuest } = useContext(AuthContext);
     const themeContext = useContext(ThemeContext);
     const { isJoined, joinProposal, isReported } = useContext(ProposalContext);
     const dispatch = useDispatch();
@@ -48,7 +46,6 @@ const Discussion = (props: DiscussionProps) => {
     const [isStopFetchMore, setStopFetchMore] = useState(false);
 
     const [createCommentMutation] = useCreatePostMutation();
-    const createFollow = useCreateFollow();
 
     const [getComments, { data: commentsQueryData, fetchMore, refetch }] = useGetCommentPostsLazyQuery({
         fetchPolicy: 'cache-and-network',
@@ -139,8 +136,9 @@ const Discussion = (props: DiscussionProps) => {
                 },
             });
             // console.log('createdComment >>> ', createdComment);
-            if (!isJoined && feedAddress) {
-                const pushData = await push.useGetCurrentPushLocalStorage();
+            /*
+            if (!isJoined) {
+                const pushData = await push.getCurrentPushLocalStorage();
                 await createFollow(
                     feedAddress,
                     [createdComment.data?.createPost?.post?.activity?.proposal?.id!],
@@ -148,6 +146,7 @@ const Discussion = (props: DiscussionProps) => {
                     pushData?.enablePush,
                 ).catch(console.log);
             }
+            */
             dispatch(
                 ActionCreators.snackBarVisibility({ visibility: true, text: getString('글이 등록 되었습니다&#46;') }),
             );

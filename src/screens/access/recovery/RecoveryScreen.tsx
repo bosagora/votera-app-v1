@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabView } from 'react-native-tab-view';
 import { ThemeContext } from 'styled-components/native';
 import { generateHashPin } from '@utils/crypto';
-import { useRecoverValidatorUserMutation } from '~/graphql/generated/generated';
+import { useRecoverValidatorUserMutation, RecoverValidatorUserData } from '~/graphql/generated/generated';
 import { AccessNavProps } from '~/navigation/access/AccessStackParams';
 import { ValidatorLogin } from '~/utils/voterautil';
 import { AuthContext } from '~/contexts/AuthContext';
@@ -15,7 +15,8 @@ import ActionCreators from '~/state/actions';
 import NodeAuth from '../common/NodeAuth';
 import PinEnrollScreen from '../common/PinEnrollScreen';
 import CompleteScreen from './Complete';
-import getString from '~/utils/locales/STRINGS';
+import getString, { getLocale } from '~/utils/locales/STRINGS';
+import pushService from '~/services/FcmService';
 
 const keys = [
     { key: 'auth', title: getString('노드인증') },
@@ -82,13 +83,20 @@ const RecoveryScreen = ({ navigation }: AccessNavProps<'Recovery'>) => {
             const password = generateHashPin(pin, validator);
 
             const voterCard = validatorLogin.getStringVoterCard();
+
+            const recoverInput: RecoverValidatorUserData = {
+                password,
+                voterCard,
+                locale: getLocale(),
+            };
+
+            const tokenOnDevice = await pushService.getPushNotificationTokenOnDevice();
+            if (tokenOnDevice) {
+                recoverInput.pushToken = tokenOnDevice.token;
+            }
+
             const userResult = await recoverValidator({
-                variables: {
-                    input: {
-                        password,
-                        voterCard,
-                    },
-                },
+                variables: { input: { data: recoverInput }},
             });
 
             if (userResult.data?.recoverValidatorUser?.user) {
@@ -136,6 +144,10 @@ const RecoveryScreen = ({ navigation }: AccessNavProps<'Recovery'>) => {
                             }
                         });
                     }
+                }
+                if (userResult.data?.recoverValidatorUser?.push && tokenOnDevice)  {
+                    const push = userResult.data?.recoverValidatorUser?.push;
+                    await pushService.updatePushTokenOnLocalStorage(push.id, tokenOnDevice.token, push.isActive);
                 }
 
                 const loginResult = await login(pin);

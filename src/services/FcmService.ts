@@ -1,12 +1,12 @@
-import { Platform, PlatformOSType } from 'react-native';
 import LocalStorage, { LocalStoragePushProps } from '~/utils/LocalStorage';
 import messaging from '@react-native-firebase/messaging';
 import Constants from 'expo-constants';
-import { PushStatusType } from '~/types/pushType';
+import { PushStatusType, PushRequestStatus } from '~/types/pushType';
+import { FeedProps } from '~/types/alarmType';
 
 const PushServiceLocation = 'PushServiceProp';
 
-function isValidPlatform() {
+function isValidPlatform(): boolean {
     if (!Constants.isDevice) {
         console.log('Must use physical device for Push Notifications');
         return false;
@@ -14,14 +14,12 @@ function isValidPlatform() {
     return true;
 }
 
-async function getLocalPushStorage() {
-    const localData: LocalStoragePushProps = (await LocalStorage.getByKey(
-        PushServiceLocation,
-    )) as LocalStoragePushProps;
-    return localData;
+async function getLocalPushStorage(): Promise<LocalStoragePushProps | undefined> {
+    const localData = await LocalStorage.getByKey(PushServiceLocation);
+    return localData as LocalStoragePushProps;
 }
 
-async function updateLocalPushStorage(updatedLocalStorage: LocalStoragePushProps) {
+async function updateLocalPushStorage(updatedLocalStorage: LocalStoragePushProps): Promise<LocalStoragePushProps> {
     try {
         await LocalStorage.setByKey(PushServiceLocation, updatedLocalStorage);
     } catch (e) {
@@ -29,108 +27,141 @@ async function updateLocalPushStorage(updatedLocalStorage: LocalStoragePushProps
     }
     return updatedLocalStorage;
 }
+
 /**
  * 토큰을 얻습니다.
  * @returns
  */
-async function getToken() {
-    const token = await messaging().getToken();
-    console.log('🚀 ~ getToken', token);
-    return token;
+async function getToken(): Promise<string> {
+    return await messaging().getToken();
 }
 
 /**
  * 토큰의 권한을 가져옵니다.
  * @returns
  */
-async function getPushTokenPermission() {
-    const pushTokenPermission = await messaging().hasPermission();
-    return pushTokenPermission;
+async function getPushTokenPermission(): Promise<boolean> {
+    const authStatus = await messaging().hasPermission();
+    return authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 }
 
 /**
  * 권한을 요청합니다
  */
-async function requestPushTokenPermission() {
-    const authorized = await messaging().requestPermission();
-    return authorized;
+async function requestPushTokenPermission(): Promise<boolean> {
+    const authStatus = await messaging().requestPermission();
+    return authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 }
 
-async function getTokenStatus() {
-    const fcmToken = await getToken();
-    const pushLocalData: LocalStoragePushProps = await getLocalPushStorage();
-
-    if (!pushLocalData) {
+async function getTokenStatus(fcmToken?: string): Promise<PushStatusType> {
+    const pushLocalData = await getLocalPushStorage();
+    if (!pushLocalData || !pushLocalData.id) {
         return PushStatusType.NEW_TOKEN;
     }
-    if (pushLocalData.token !== fcmToken) {
+    if ((fcmToken && pushLocalData.token !== fcmToken) || pushLocalData.tokenStatus === PushStatusType.RENEW_TOKEN) {
         return PushStatusType.RENEW_TOKEN;
     }
     return PushStatusType.USING_TOKEN;
 }
 
-async function getPushTokenRequestStatus() {
-    const pushTokenPermissionOnDevice = await getPushTokenPermission();
-    // if (pushTokenPermissionOnDevice === messaging.AuthorizationStatus.AUTHORIZED) {
-    //     //토큰 활성화 됨, 생성인데 확인해야함. 로컬의 데이터와 비교 필요
-    //     const localData: LocalStoragePushProps = await getLocalPushStorage();
-    // }
-    let enablePush = true;
-    if (pushTokenPermissionOnDevice === messaging.AuthorizationStatus.NOT_DETERMINED) {
-        // 토큰이 비활성화 상태 ,
-        // .NOT_DETERMINED: 신청에 대한 권한이 아직 요청되지 않았습니다
-        // 처음에 알림 뜨면 이곳이 발생함
-        const selectedPermission = await requestPushTokenPermission();
-        enablePush = selectedPermission === 1 ? true : false;
-        // 토큰 저장 로직 필요 비교 후 저장 토큰 상태값 변경 필여
-    }
-    if (pushTokenPermissionOnDevice === messaging.AuthorizationStatus.DENIED) {
-        // .DENIED: 사용자가 알림 권한을 거부했습니다.
-        // 거부되어도 토큰상태는 확인해야함
-        const selectedPermission = await requestPushTokenPermission();
-        enablePush = selectedPermission === 1 ? true : false;
-    }
-    // .PROVISIONAL: 임시 권한 이 부여되었습니다. 요청 없이 활성화 하는 것.
+let userAlarmStatus: FeedProps = {};
 
-    const fcmToken = await getToken();
-    const tokenStatus = await getTokenStatus();
-    return { token: fcmToken, tokenStatus, enablePush };
-}
+const pushService = {
+    registerAppWithFCM: async (): Promise<void> => {
+        if (!messaging().isDeviceRegisteredForRemoteMessages) {
+            await messaging().registerDeviceForRemoteMessages();
+        }
+    },
+    
+    getPushNotificationTokenOnDevice: async (): Promise<PushRequestStatus | null> => {
+        if (!isValidPlatform()) {
+            return null;
+        }
 
-const push = {
-    getPushNotificationTokenOnDevice: async () => {
-        if (!isValidPlatform()) return;
+        const hasPermission = await requestPushTokenPermission();
+        if (!hasPermission) {
+            return null;
+        }
 
-        const pushTokenData = await getPushTokenRequestStatus();
-        console.log('🚀 ~ pushTokenData', pushTokenData);
-        return pushTokenData;
+        const token = await getToken();
+        const tokenStatus = await getTokenStatus(token);
+        return { token, tokenStatus };
     },
 
-    useCreateTokenToLocalPushStorage: async (pushId: string, pushToken: string, enablePush: boolean) => {
-        const localData = { id: pushId, token: pushToken, enablePush };
+    updatePushTokenOnLocalStorage: async (pushId: string, pushToken: string, pushIsActive?: boolean | null) => {
+        const enablePush = !!pushIsActive;
+        let localData = await getLocalPushStorage();
+        if (!localData) {
+            localData = {
+                id: pushId,
+                token: pushToken,
+                enablePush,
+                tokenStatus: PushStatusType.USING_TOKEN
+            };
+        } else {
+            localData.id = pushId;
+            localData.token = pushToken;
+            localData.enablePush = enablePush;
+            localData.tokenStatus = PushStatusType.USING_TOKEN;
+        }
         return await updateLocalPushStorage(localData);
     },
 
-    useUpdateTokenToLocalPushStorage: async (pushToken: string) => {
-        const token = pushToken;
-        const localPush: LocalStoragePushProps = await getLocalPushStorage();
+    updateRefreshTokenOnLocalStorage: async (pushToken: string) => {
+        let localData = await getLocalPushStorage();
+        if (!localData) {
+            localData = { token: pushToken, enablePush: true, tokenStatus: PushStatusType.RENEW_TOKEN };
+        } else {
+            localData.token = pushToken;
+            localData.tokenStatus = PushStatusType.RENEW_TOKEN;
+        }
+        return await updateLocalPushStorage(localData);
+    },
 
-        const pushTokenPermissionOnDevice = await getPushTokenPermission();
-        let enablePush = true;
-        if (pushTokenPermissionOnDevice !== messaging.AuthorizationStatus.AUTHORIZED) {
-            enablePush = false;
+    checkPushTokenChangeOnLocalStorage: async (): Promise<boolean> => {
+        if (!isValidPlatform()) {
+            return false;
         }
 
-        const currentPushId = localPush.id;
-        localPush.token = token;
-        localPush.enablePush = enablePush;
+        let localData = await getLocalPushStorage();
 
-        updateLocalPushStorage(localPush).catch((err) => {
-            console.log('updateLocalPushStorage exception : ', err);
-        });
-        return { id: currentPushId, token };
+        const hasPermission = await requestPushTokenPermission();
+        if (!hasPermission) {
+            if (!localData || localData.tokenStatus === PushStatusType.DISABLED) {
+                return false;
+            }
+            return true;
+        }
+
+        if (!localData || !localData.id) {
+            return true; // NEW_TOKEN
+        }
+        if (localData.tokenStatus !== PushStatusType.USING_TOKEN) {
+            return true;
+        }
+
+        return false;
     },
-    useGetCurrentPushLocalStorage: async () => {
+
+    disablePushTokenOnLocalStorage: async () => {
+        let localData = await getLocalPushStorage();
+        if (localData) {
+            localData.tokenStatus = PushStatusType.DISABLED;
+            await updateLocalPushStorage(localData);
+        }
+    },
+
+    activatePushTokenOnLocalStorage: async (activate: boolean) => {
+        let localData = await getLocalPushStorage();
+        if (localData) {
+            localData.enablePush = activate;
+            await updateLocalPushStorage(localData);
+        }
+    },
+
+    getCurrentPushLocalStorage: async () => {
         const pushData = await getLocalPushStorage();
         return pushData;
     },
@@ -138,6 +169,16 @@ const push = {
         const pushPermission = await getPushTokenPermission();
         return pushPermission;
     },
+
+    setUserAlarmStatus: (alarmStatus: FeedProps) => {
+        if (alarmStatus) {
+            userAlarmStatus = {...userAlarmStatus, ...alarmStatus};
+        }
+        return {...userAlarmStatus};
+    },
+    getUserAlarmStatus: () => {
+        return {...userAlarmStatus};
+    }
 };
 
-export default push;
+export default pushService;

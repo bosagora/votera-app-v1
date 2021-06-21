@@ -1,5 +1,5 @@
 import './global';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { ThemeProvider } from 'react-native-elements';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components/native';
 import { Provider } from 'react-redux';
@@ -13,6 +13,7 @@ import { theme as sTheme } from './src/theme/styledTheme';
 import apolloClient from './src/graphql/client';
 import { AuthProvider } from '~/contexts/AuthContext';
 import { ProposalProvider } from '~/contexts/ProposalContext';
+import pushService from '~/services/FcmService';
 
 let preventCalled = false;
 
@@ -22,24 +23,15 @@ if (!preventCalled) {
     preventCalled = true;
 }
 
-export default function App() {
-    async function registerAppWithFCM() {
-        if (!messaging().isDeviceRegisteredForRemoteMessages) {
-            await messaging().registerDeviceForRemoteMessages();
-        }
-    }
+messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+});
 
-    const foregroundListener = useCallback(() => {
-        messaging().onMessage(async (message) => {
-            console.log('foreground message : ', message);
-        });
-    }, []);
+export default function App() {
 
     useEffect(() => {
-        registerAppWithFCM();
-        foregroundListener();
-        // handlePushToken();
-        // saveDeviceToken();
+        pushService.registerAppWithFCM().catch((err) => {
+            console.log('registerAppWithFCM error : ', err);
+        });
     }, []);
 
     return (

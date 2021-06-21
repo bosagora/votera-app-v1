@@ -18,6 +18,8 @@ interface QrcodeValidatorVote {
     app: string;
     height: string;
     value: string;
+    validator: string;
+    signature: string;
 }
 
 export class ValidatorLogin {
@@ -62,9 +64,8 @@ export class ValidatorLogin {
 }
 
 export interface ValidatorVote {
-    app: string;
-    height: boasdk.JSBI;
-    key_agora_admin: boasdk.Hash;
+    validator: string;
+    encryptionKey: boasdk.EncryptionKey;
 }
 
 const VOTERA_APP = 'Votera';
@@ -104,18 +105,25 @@ export function parseQrcodeValidatorVote(data: string): ValidatorVote {
     if (!qrdata.app || qrdata.app !== VOTERA_APP) {
         throw new Error('unknown App for vote');
     }
-    if (!qrdata.height || !qrdata.value) {
+    if (!qrdata.height || !qrdata.value || !qrdata.validator || !qrdata.signature) {
         throw new Error('invalid vote data');
     }
-    const height = boasdk.JSBI.BigInt(qrdata.height);
-    if (boasdk.JSBI.lessThan(height, boasdk.JSBI.BigInt(0))) {
+    const height = new boasdk.Height(qrdata.height);
+    if (boasdk.JSBI.lessThan(height.value, boasdk.JSBI.BigInt(0))) {
         throw new Error('invalid vote data');
+    }
+    const value = new boasdk.Hash(qrdata.value);
+    const validator = new boasdk.PublicKey(qrdata.validator);
+    const signature = new boasdk.Signature(qrdata.signature);
+
+    const encryptionKey = new boasdk.EncryptionKey(qrdata.app, height, value, validator, signature);
+    if (!encryptionKey.verify()) {
+        throw new Error('EncryptionKey failed to verify');
     }
 
     return {
-        app: qrdata.app,
-        height,
-        key_agora_admin: new boasdk.Hash(qrdata.value),
+        validator: validator.toString(),
+        encryptionKey,
     };
 }
 
@@ -198,7 +206,7 @@ export enum VOTE_SELECT {
 export function makeVoteLinkData(proposal_id: string, validator_login: ValidatorLogin, validator_vote: ValidatorVote, vote: VOTE_SELECT, sequence: number): LinkDataWithVoteData {
     let ballotSelect = (vote === VOTE_SELECT.YES) ? Buffer.from([boasdk.BallotData.YES]) : (vote === VOTE_SELECT.NO) ? Buffer.from([boasdk.BallotData.NO]) : Buffer.from([boasdk.BallotData.BLANK]);
 
-    const key_encrypt = boasdk.Encrypt.createKey(validator_vote.key_agora_admin.data, proposal_id);
+    const key_encrypt = boasdk.Encrypt.createKey(validator_vote.encryptionKey.value.data, proposal_id);
     const ballot = boasdk.Encrypt.encrypt(ballotSelect, key_encrypt);
     const ballot_data = new boasdk.BallotData(VOTERA_APP, proposal_id, ballot, validator_login.voter_card, sequence);
     ballot_data.signature = validator_login.private_key.sign<boasdk.BallotData>(ballot_data);

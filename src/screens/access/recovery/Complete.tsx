@@ -22,7 +22,7 @@ const CompleteScreen = (props: CompleteProps) => {
                         globalStyle.btext,
                         { fontSize: 17, color: themeContext.color.primary, textAlign: 'center' },
                     ]}
-                >{getString(`계정이 성공적으로 복구되었습니다&#46;`)}</Text>
+                >{getString(`계정을 복구할 준비가 되었습니다&#46;`)}</Text>
             </View>
 
             <View style={{ flex: 1, justifyContent: 'center' }}>

@@ -1,4 +1,4 @@
-import { Day } from '~/components/input/DatePicker';
+import { PushStatusType } from "~/types/pushType";
 
 export interface LocalStorageProps {
     user: LocalStorageUserProps;
@@ -6,7 +6,6 @@ export interface LocalStorageProps {
     groupBookmarks: string[];
     activityBookmarks: string[];
     searchHistory?: string[];
-    feed: LocalStorageFeedProps;
 }
 
 export interface LocalStorageVoterCardProps {
@@ -28,17 +27,10 @@ export interface LocalStorageUserProps {
 }
 
 export interface LocalStoragePushProps {
-    id: string;
+    id?: string;
     token: string;
     enablePush: boolean;
-    authorization?: string;
-}
-
-export interface LocalStorageFeedProps {
-    isMyProposalsNews?: boolean;
-    isLikeProposalsNews?: boolean;
-    isNewProposalNews?: boolean;
-    isEtcNews?: boolean;
+    tokenStatus: PushStatusType;
 }
 
 export interface LocalStorageProposalProps {

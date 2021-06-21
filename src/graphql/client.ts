@@ -8,19 +8,11 @@ import { WebSocketLink } from '@apollo/client/link/ws';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import fetch from 'isomorphic-fetch';
 import * as mime from 'react-native-mime-types';
-import { httpLinkURI, webSocketURI, feedSocketURI } from '../../config/ServerConfig';
+import { httpLinkURI, webSocketURI } from '../../config/ServerConfig';
 
-console.log(`Link=${httpLinkURI as string} , ${webSocketURI as string} , ${feedSocketURI as string}`);
+console.log(`Link=${httpLinkURI as string} , ${webSocketURI as string}`);
 
 let contextToken: string | undefined;
-
-export function setToken(token: string) {
-    contextToken = token;
-}
-
-export function resetToken() {
-    contextToken = undefined;
-}
 
 const httpLink = createUploadLink({
     uri: `${httpLinkURI as string}/graphql`,
@@ -32,8 +24,20 @@ const httpLink = createUploadLink({
 
 const wsClient = new SubscriptionClient(webSocketURI as string, {
     reconnect: true,
+    connectionParams: {
+        authToken: () => contextToken,
+    }
 });
 const wsLink = new WebSocketLink(wsClient);
+
+export function setToken(token: string) {
+    contextToken = token;
+}
+
+export function resetToken() {
+    contextToken = undefined;
+    wsClient.close(true);
+}
 
 const authMiddleware = setContext((req, context) => {
     console.group(`${Date.now()} | Apollo call - `, req.operationName);
@@ -154,16 +158,6 @@ const client = new ApolloClient({
             },
         },
     }),
-});
-
-const feedWsClient = new SubscriptionClient(feedSocketURI as string, {
-    reconnect: true,
-});
-const feedLink = new WebSocketLink(feedWsClient);
-
-export const feedClient = new ApolloClient({
-    link: feedLink,
-    cache: new InMemoryCache(),
 });
 
 export const loadUriAsFile = async (uri: string, name?: string): Promise<ReactNativeFile | Blob> => {

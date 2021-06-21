@@ -7,8 +7,6 @@ import globalStyle from '~/styles/global';
 import ProposalPreviewScreen from '~/screens/create/ProposalPreviewScreen';
 import UpdateNode from '~/screens/create/UpdateNode';
 import ProposalPayment from '../screens/create/ProposalPaymentScreen';
-import { View } from 'react-native';
-import { Text } from 'react-native-elements';
 
 const CreateStack = createStackNavigator<CreateStackParams>();
 

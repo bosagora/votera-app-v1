@@ -21,7 +21,6 @@ export const NotificationsDocument = gql`
     subscription NOTIFICATIONS_SUBSCRIPTION($input: NotificationsInput!) {
         listenNotifications(input: $input) {
             id
-            rejectId
             type
             content {
                 version
@@ -41,7 +40,6 @@ export const NotificationsDocument = gql`
                 postId
                 status
             }
-            timestamp
         }
     }
 `;
