@@ -18,7 +18,6 @@ interface LoadingProps {
 const Loading = (props: LoadingProps): JSX.Element => {
     const { onComplete } = props;
     const dispatch = useDispatch();
-    let { feedAddress } = useContext(AuthContext);
     const { loading } = useVoteraConfigurationQuery({
         fetchPolicy: 'no-cache',
         onCompleted: (data) => {

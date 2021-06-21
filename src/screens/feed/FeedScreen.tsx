@@ -9,9 +9,8 @@ import FeedCard from '~/components/feed/FeedCard';
 import { getFeed, getNavigationType } from '~/utils/feed/feedUtils';
 import { FlatList } from 'react-native-gesture-handler';
 import { Feeds, useGetFeedsConnectionQuery, useGetFeedsQuery } from '~/graphql/generated/generated';
-import { useNotificationsSubscription } from '~/graphql/hooks/Subscriptions';
+// import { useNotificationsSubscription } from '~/graphql/hooks/Subscriptions';
 import { useUpdateFeed } from '~/graphql/hooks/Feed';
-import { feedClient } from '~/graphql/client';
 import { FeedFilterType } from '~/types/filterType';
 import FilterButton from '~/components/button/FilterButton';
 import { AuthContext } from '~/contexts/AuthContext';
@@ -52,7 +51,6 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
     const [feeds, setFeeds] = useState<Feeds[]>();
     const [feedCount, setFeedCount] = useState<number>();
     const [feedTotalCount, setFeedTotalCount] = useState<number>();
-    const [updatedFeedData, setUpdatedFeedData] = useState<Feeds>();
     // filter 버튼을 통해 변경할 경우 , filter state 가 변경됩니다.
     const [filter, setFilter] = useState<FeedFilterType>(FeedFilterType.LATEST);
     const [feedQuery, setFeedQuery] = useState<any>({ target: feedAddress });
@@ -74,7 +72,6 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
             where: {
                 target: feedAddress,
                 isRead: false,
-                rejectId_ne: user?.memberId,
             },
         },
     });
@@ -83,20 +80,16 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
         variables: {
             where: {
                 target: feedAddress,
-                rejectId_ne: user?.memberId,
             },
         },
     });
-    const { loading, error, data: subResponse } = useNotificationsSubscription({
-        variables: {
-            input: {
-                memberId: feedAddress,
-            },
-        },
-        client: feedClient,
-    });
-    // console.log('useSubscription loading', loading);
-    // console.log('useSubscription error', error);
+    // const { loading, error, data: subResponse } = useNotificationsSubscription({
+    //     variables: {
+    //         input: {
+    //             berId: feedAddress,
+    //         },
+    //     },
+    // });
 
     useEffect(() => {
         if (filter && feedAddress) {
@@ -120,12 +113,6 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
     }, [feedsData]);
 
     useEffect(() => {
-        if (updatedFeedData) {
-            setFeeds(feeds);
-        }
-    }, [updatedFeedData]);
-
-    useEffect(() => {
         if (noReadFeedsConnectionData) {
             const { count: noReadCount } = noReadFeedsConnectionData.feedsConnection?.aggregate!;
             setFeedCount(noReadCount || 0);
@@ -138,28 +125,12 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
         }
     }, [totalFeedsConnectionData]);
 
-    useEffect(() => {
-        if (subResponse) {
-            if (myMemberIds.some((member) => member === subResponse.listenNotifications?.rejectId)) {
-                return;
-            }
-
-            const newNotification = { ...subResponse.listenNotifications, isRead: false };
-            setFeeds([newNotification, ...(feeds || [])]);
-            refetchFeedConnection && refetchFeedConnection();
-            feedTotalCount && setFeedTotalCount(feedTotalCount + 1);
-            feedCount && setFeedCount(feedCount + 1);
-        }
-    }, [subResponse]);
-
     function renderFeedCard({ item }: { item: Feeds }) {
-        const { id, rejectId, type, timestamp, content, navigation: navigationParams, createdAt, isRead } = item;
+        const { id, type, content, navigation: navigationParams, createdAt, isRead } = item;
 
         const { feedContent } = getFeed(type, content);
         let newIsRead = item.isRead!;
-        if (rejectId && myMemberIds.includes(rejectId)) {
-            return null;
-        }
+
         return (
             <FeedCard
                 id={id}
@@ -171,8 +142,9 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
                     newIsRead ||
                         updateFeed(id)
                             .then((result) => {
-                                setUpdatedFeedData(result?.data?.updateFeed?.feed);
-                                if (refetchFeedConnection) refetchFeedConnection();
+                                if (result && result?.data?.updateFeed?.feed) {
+                                    if (refetchFeedConnection) refetchFeedConnection();
+                                }
                             })
                             .catch(console.log);
                     item.isRead = true;

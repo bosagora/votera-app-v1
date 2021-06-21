@@ -67,7 +67,6 @@ const get = async (): Promise<LocalStorageProps> => {
         groupBookmarks: [],
         activityBookmarks: [],
         searchHistory: [],
-        feed: {},
     };
 };
 

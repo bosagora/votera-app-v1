@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabView } from 'react-native-tab-view';
 import { ThemeContext } from 'styled-components/native';
 import { generateHashPin } from '@utils/crypto';
-import { useCreateValidatorUserMutation } from '~/graphql/generated/generated';
+import { useCreateValidatorUserMutation, CreateValidatorUserData } from '~/graphql/generated/generated';
 import { AccessNavProps } from '~/navigation/access/AccessStackParams';
 import { ValidatorLogin } from '~/utils/voterautil';
 import { AuthContext, User } from '~/contexts/AuthContext';
@@ -18,7 +18,8 @@ import PinEnrollScreen from '../common/PinEnrollScreen';
 import NameScreen from './Name';
 import CompleteScreen from './Complete';
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
-import getString from '~/utils/locales/STRINGS';
+import getString, { getLocale } from '~/utils/locales/STRINGS';
+import pushService from '~/services/FcmService';
 
 const SignupScreen = ({ navigation }: AccessNavProps<'Signup'>) => {
     const keys = [
@@ -94,15 +95,22 @@ const SignupScreen = ({ navigation }: AccessNavProps<'Signup'>) => {
             const password = generateHashPin(pin, validator);
 
             const voterCard = validatorLogin.getStringVoterCard();
+
+            const createInput: CreateValidatorUserData = {
+                username: accountName,
+                password,
+                nodeName,
+                voterCard,
+                locale: getLocale()
+            };
+
+            const tokenOnDevice = await pushService.getPushNotificationTokenOnDevice();
+            if (tokenOnDevice) {
+                createInput.pushToken = tokenOnDevice.token;
+            }
+
             const createUserResult = await createValidatorUser({
-                variables: {
-                    input: {
-                        username: accountName,
-                        password,
-                        nodeName,
-                        voterCard,
-                    },
-                },
+                variables: { input: { data: createInput }},
             });
 
             if (createUserResult.data?.createValidatorUser?.user) {
@@ -129,6 +137,10 @@ const SignupScreen = ({ navigation }: AccessNavProps<'Signup'>) => {
                         validatorLogin,
                         true,
                     );
+                }
+                if (createUserResult.data.createValidatorUser.push && tokenOnDevice) {
+                    const push = createUserResult.data.createValidatorUser.push;
+                    await pushService.updatePushTokenOnLocalStorage(push.id, tokenOnDevice.token, push.isActive);
                 }
 
                 const loginResult = await login(pin);

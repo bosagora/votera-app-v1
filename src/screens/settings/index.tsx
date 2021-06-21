@@ -3,21 +3,20 @@ import { View, Image, ScrollView, StyleSheet, Switch } from 'react-native';
 import { Button, Text } from 'react-native-elements';
 import { useDispatch } from 'react-redux';
 import * as Application from 'expo-application';
-import globalStyle from '~/styles/global';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { LocalStoragePushProps } from '~/utils/LocalStorage';
 import { useIsFocused } from '@react-navigation/native';
 import { ThemeContext } from 'styled-components/native';
-import push from '~/services/FcmService';
+import globalStyle from '~/styles/global';
+import pushService from '~/services/FcmService';
 import ActionCreators from '~/state/actions';
-import messaging from '@react-native-firebase/messaging';
 import { MainNavProps } from '~/navigation/types/MainStackParams';
-import { useToggleFollowAllMutation } from '~/graphql/generated/generated';
+import { useUpdatePushTokenMutation } from '~/graphql/generated/generated';
 import { getAppUpdate } from '~/utils/device';
 import { getUserServiceTermURL, getPrivacyTermURL } from '~/utils/agoraconf';
 import { AuthContext } from '~/contexts/AuthContext';
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
 import getString from '~/utils/locales/STRINGS';
+import { PushStatusType } from '~/types/pushType';
 
 const styles = StyleSheet.create({
     sectionLabel: {
@@ -35,67 +34,63 @@ const styles = StyleSheet.create({
 
 const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element => {
     const dispatch = useDispatch();
-    const { feedAddress, isGuest } = useContext(AuthContext);
+    const { isGuest, user } = useContext(AuthContext);
     const themeContext = useContext(ThemeContext);
     const isFocused = useIsFocused();
-    const [usePush, setUsePush] = useState<boolean>();
-    const [toggleFollowAll] = useToggleFollowAllMutation();
-    // TODO: Overlay 작업이 안되어 있음
-    const [showWarningPushPopup, setShowWarningPushPopup] = useState(false);
+    const [usePush, setUsePush] = useState<boolean>(!isGuest);
+    const [disablePush, setDisablePush] = useState<boolean>(isGuest);
 
-    function mutateUpdateFollow(isPush: boolean) {
-        toggleFollowAll({
+    const [updatePushToken] = useUpdatePushTokenMutation();
+
+    const toggleUsePush = async (isPush: boolean) => {
+        const localData = await pushService.getCurrentPushLocalStorage();
+        if (!localData?.id) {
+            return;
+        }
+
+        await pushService.updatePushTokenOnLocalStorage(localData.id, localData.token, isPush);
+
+        const result = await updatePushToken({
             variables: {
                 input: {
-                    member: feedAddress,
-                    isActive: isPush,
+                    where: {
+                        id: user?.userId || '',
+                    },
+                    data: {
+                        pushId: localData.id,
+                        isActive: isPush,
+                    },
                 },
             },
-        }).catch(console.log);
-    }
-
-    const toggleUsePush = (isPush: boolean) => {
-        // Local user enablePush
-        push.useGetCurrentPushLocalStorage()
-            .then((localData: LocalStoragePushProps) => {
-                localData.enablePush = isPush;
-                return localData;
-            })
-            .then((localData) => {
-                const { token, enablePush } = localData;
-                return push.useUpdateTokenToLocalPushStorage(token, enablePush);
-            })
-            .then(() => {
-                mutateUpdateFollow(isPush);
-            })
-            .catch(console.log);
-        // mutation updateFeed
+        });
+        if (!result.data?.updateUserPushToken?.userFeed) {
+            // update failed, restore to original
+            await pushService.updatePushTokenOnLocalStorage(localData.id, localData.token, localData.enablePush);
+            setUsePush(localData.enablePush);
+            dispatch(ActionCreators.snackBarVisibility({
+                visibility: true,
+                text: getString('사용자 설정 오류로 변경 실패'),
+            }));
+        }
     };
 
     useEffect(() => {
-        if (isFocused) {
-            push.useGetCurrentPushLocalStorage()
+        if (isFocused && !isGuest) {
+            pushService.getCurrentPushLocalStorage()
                 .then((localData) => {
-                    if (localData.enablePush === true) {
-                        // 푸시 권한으로 푸시 사용유무 확인
-                        push.useGetPushPermission()
-                            .then((permissions) => {
-                                if (permissions !== messaging.AuthorizationStatus.AUTHORIZED) {
-                                    setUsePush(false);
-                                    mutateUpdateFollow(false);
-                                } else {
-                                    setUsePush(true);
-                                    mutateUpdateFollow(true);
-                                }
-                            })
-                            .catch(console.log);
-                    } else {
-                        setUsePush(localData.enablePush || false);
+                    if (!localData || localData.tokenStatus === PushStatusType.DISABLED) {
+                        setUsePush(false);
+                        setDisablePush(true);
+                        return;
                     }
+
+                    setUsePush(!!localData.enablePush);
                 })
-                .catch(console.log);
+                .catch((err) => {
+                    console.log('getCurrentPushLocalStorage error : ', err);
+                });
         }
-    }, [isFocused]);
+    }, [isFocused, isGuest]);
 
     React.useLayoutEffect(() => {
         navigation.setOptions({
@@ -147,25 +142,13 @@ const Settings = ({ navigation, route }: MainNavProps<'Settings'>): JSX.Element 
                         <Switch
                             style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
                             trackColor={{ true: themeContext.color.primary, false: themeContext.color.black }}
-                            disabled={isGuest}
+                            disabled={disablePush}
                             value={usePush}
                             onValueChange={(isPush) => {
-                                if (isPush === true) {
-                                    push.useGetPushPermission()
-                                        .then((permission) => {
-                                            if (permission === messaging.AuthorizationStatus.AUTHORIZED) {
-                                                setUsePush(isPush);
-                                                toggleUsePush(isPush);
-                                            } else {
-                                                setShowWarningPushPopup(true);
-                                                console.log('no!');
-                                            }
-                                        })
-                                        .catch(console.log);
-                                } else {
-                                    setUsePush(isPush);
-                                    toggleUsePush(isPush);
-                                }
+                                setUsePush(isPush);
+                                toggleUsePush(isPush).catch((err) => {
+                                    console.log('toggleUsePush error : ', err);
+                                })
                             }}
                             thumbColor={'white'}
                         />

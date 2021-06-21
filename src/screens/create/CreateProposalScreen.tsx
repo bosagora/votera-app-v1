@@ -30,12 +30,10 @@ import {
 } from '~/graphql/generated/generated';
 import { loadUriAsFile } from '~/graphql/client';
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
-import { useCreateFollow } from '~/graphql/hooks/Follow';
 import LocalStorage, { LocalStorageProposalProps } from '~/utils/LocalStorage';
 import { AuthContext } from '~/contexts/AuthContext';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import { OpenWhere, ProjectWhere } from '~/graphql/hooks/Proposals';
-import push from '~/services/FcmService';
 import { ValidatorLogin, StringToAmount, AmountToString, calculateProposalFee, BOA_ZERO } from '~/utils/voterautil';
 import { getProposalFeeRatio, isValidFundAmount } from '~/utils/agoraconf';
 import getString from '~/utils/locales/STRINGS';
@@ -108,11 +106,10 @@ const RowWrapper: React.FC<RowProps> = (props) => {
 
 const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>) => {
     const dispatch = useDispatch();
-    const { user, isGuest, getVoterCard, isValidVoterCard, feedAddress } = useContext(AuthContext);
+    const { user, isGuest, getVoterCard, isValidVoterCard } = useContext(AuthContext);
     const { fetchProposal } = useContext(ProposalContext);
     const themeContext = useContext(ThemeContext);
     const insets = useSafeAreaInsets();
-    const createFollow = useCreateFollow();
     const isFocused = useIsFocused();
     const [validatorLogin, setValidatorLogin] = useState<ValidatorLogin | null>();
 
@@ -283,8 +280,9 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                     }
                 },
             });
-            if (proposalResponse.data?.createProposal?.proposal?.id && feedAddress) {
-                const pushData = await push.useGetCurrentPushLocalStorage();
+            /*
+            if (proposalResponse.data?.createProposal?.proposal?.id) {
+                const pushData = await push.getCurrentPushLocalStorage();
                 await createFollow(
                     feedAddress,
                     [proposalResponse.data?.createProposal?.proposal?.id],
@@ -292,6 +290,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                     pushData?.enablePush,
                 ).catch(console.log);
             }
+            */
 
             dispatch(ActionCreators.loadingAniModal({ visibility: false }));
 
@@ -377,7 +376,7 @@ const CreateProposal = ({ route, navigation }: CreateNavProps<'CreateProposal'>)
                 const { saveData } = route.params;
                 setTitle(saveData.name || '');
                 setDescription(saveData.description || '');
-                setProposalType(saveData.type as Enum_Proposal_Type);
+                setProposalType((saveData.type || Enum_Proposal_Type.Business) as Enum_Proposal_Type);
                 if (saveData.fundingFee) setBoa(JSBI.BigInt(saveData.fundingFee));
                 if (saveData.startDate || saveData.endDate) {
                     setDate(convertStringToDay(saveData.startDate, saveData.endDate));

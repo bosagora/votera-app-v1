@@ -1,17 +1,67 @@
-mutation login($input: UsersPermissionsLoginInput!) {
-    login(input: $input) {
-        jwt
-        user {
+query me {
+    meEx {
+        id
+        username
+        user_feed {
             id
-            username
+            locale
+            myProposalsNews
+            likeProposalsNews
+            newProposalsNews
+            myCommentsNews
+            etcNews
         }
     }
 }
 
-mutation updateUser($input: updateUserInput) {
-    updateUser(input: $input) {
+mutation login($input: UsersPermissionsLoginInput!) {
+    loginEx(input: $input) {
+        jwt
         user {
             id
+            username
+            user_feed {
+                id
+                locale
+                myProposalsNews
+                likeProposalsNews
+                newProposalsNews
+                myCommentsNews
+                etcNews
+            }
+        }
+    }
+}
+
+mutation updatePassword($input: updatePasswordInput!) {
+    updatePassword(input: $input) {
+        user {
+            id
+        }
+    }
+}
+
+mutation updatePushToken($input: updateUserPushTokenInput!) {
+    updateUserPushToken(input: $input) {
+        userFeed {
+            id
+            pushes {
+                id
+                isActive
+            }
+        }
+    }
+}
+
+mutation updateAlarmStatus($input: updateUserAlarmStatusInput!) {
+    updateUserAlarmStatus(input: $input) {
+        userFeed {
+            id
+            myProposalsNews
+            likeProposalsNews
+            newProposalsNews
+            myCommentsNews
+            etcNews
         }
     }
 }

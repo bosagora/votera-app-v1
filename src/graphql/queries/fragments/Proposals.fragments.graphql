@@ -14,8 +14,12 @@ fragment ProposalItem on Proposal {
     }
     roles {
         id
+        type
         scope
         status
+        member {
+            id
+        }
     }
     activities {
         id

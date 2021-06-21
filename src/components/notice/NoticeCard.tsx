@@ -21,8 +21,6 @@ import moment from 'moment';
 import CommentCard from '../opinion/CommentCard';
 import { AuthContext } from '~/contexts/AuthContext';
 import { ProposalContext } from '~/contexts/ProposalContext';
-import push from '~/services/FcmService';
-import { useCreateFollow } from '~/graphql/hooks/Follow';
 import { downloadFile } from '~/utils/file';
 import getString from '~/utils/locales/STRINGS';
 import ShortButton from '../button/ShortButton';
@@ -60,7 +58,7 @@ interface NoticeImgsProps {
 const NoticeCard = (props: NoticeCardProps) => {
     const dispatch = useDispatch();
     const themeContext = useContext(ThemeContext);
-    const { user, isGuest, feedAddress } = useContext(AuthContext);
+    const { user, isGuest } = useContext(AuthContext);
     const { isJoined, joinProposal, isReported } = useContext(ProposalContext);
 
     const { noticeData, noticeAId } = props;
@@ -74,7 +72,7 @@ const NoticeCard = (props: NoticeCardProps) => {
     const [isStopFetchMore, setStopFetchMore] = useState(false);
 
     const [createCommentMutation] = useCreatePostMutation();
-    const createFollow = useCreateFollow();
+
     const [getNoticeComments, { data: noticeCommentsQuery, loading, fetchMore, refetch }] = useGetCommentPostsLazyQuery(
         {
             fetchPolicy: 'cache-and-network',
@@ -232,9 +230,9 @@ const NoticeCard = (props: NoticeCardProps) => {
                     setReplyCount((replyCount || 0) + 1);
                 },
             });
-
-            if (!isJoined && feedAddress) {
-                const pushData = await push.useGetCurrentPushLocalStorage();
+            /*
+            if (!isJoined) {
+                const pushData = await push.getCurrentPushLocalStorage();
                 await createFollow(
                     feedAddress,
                     [createdComment.data?.createPost?.post?.activity?.proposal?.id!],
@@ -242,6 +240,7 @@ const NoticeCard = (props: NoticeCardProps) => {
                     pushData?.enablePush,
                 ).catch(console.log);
             }
+            */
             dispatch(
                 ActionCreators.snackBarVisibility({ visibility: true, text: getString('글이 등록 되었습니다&#46;') }),
             );

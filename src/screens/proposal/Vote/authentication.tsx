@@ -102,12 +102,11 @@ const Authentication = (props: Props) => {
 
             try {
                 const voteData = parseQrcodeValidatorVote(data);
+                if (voteData.validator !== validatorLogin.validator) {
+                    Alert.alert(getString('현재 로그인한 노드의 qrcode가 아닙니다'));
+                    return;
+                }
                 props.onNodeAuthComplete(validatorLogin, voteData);
-                dispatch(
-                    ActionCreators.qrcodeScanner({
-                        visibility: false,
-                    }),
-                );
             } catch (err) {
                 console.log('checkNode error = ', err);
                 dispatch(

@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Text, Divider, Icon, Button } from 'react-native-elements';
-
 import { useDispatch } from 'react-redux';
 import MultilineInput from '~/components/input/MultiLineInput';
 import CommentCard from '~/components/opinion/CommentCard';
@@ -21,10 +20,8 @@ import { AuthContext } from '~/contexts/AuthContext';
 import CommentButton from '../button/CommentButton';
 import CommentLikeButton from '../button/CommentLikeButton';
 import { ProposalContext } from '~/contexts/ProposalContext';
-import { debounce, isArguments } from 'lodash';
+import { debounce } from 'lodash';
 import { useInteraction } from '~/graphql/hooks/Interactions';
-import { useCreateFollow } from '~/graphql/hooks/Follow';
-import push from '~/services/FcmService';
 import getString from '~/utils/locales/STRINGS';
 
 interface OpinionCardProps {
@@ -52,14 +49,13 @@ interface ReplyProps {
 }
 const Reply = (props: ReplyProps) => {
     const dispatch = useDispatch();
-    const { user, isGuest, feedAddress } = useContext(AuthContext);
+    const { user, isGuest } = useContext(AuthContext);
     const { isJoined, joinProposal, isReported } = useContext(ProposalContext);
     const { activityId, postId, closeReply } = props;
     const [text, setText] = useState('');
     const [replyData, setReplyData] = useState<Post[]>();
 
     const [createCommentMutation] = useCreatePostMutation();
-    const createFollow = useCreateFollow();
 
     const { data: replyQueryData, loading } = useGetCommentPostsQuery({
         variables: {
@@ -158,8 +154,9 @@ const Reply = (props: ReplyProps) => {
                     }
                 },
             });
-            if (!isJoined && feedAddress) {
-                const pushData = await push.useGetCurrentPushLocalStorage();
+            /*
+            if (!isJoined) {
+                const pushData = await push.getCurrentPushLocalStorage();
                 await createFollow(
                     feedAddress,
                     [createdComment.data?.createPost?.post?.activity?.proposal?.id!],
@@ -167,6 +164,7 @@ const Reply = (props: ReplyProps) => {
                     pushData?.enablePush,
                 ).catch(console.log);
             }
+            */
             dispatch(
                 ActionCreators.snackBarVisibility({ visibility: true, text: getString('글이 등록 되었습니다&#46;') }),
             );

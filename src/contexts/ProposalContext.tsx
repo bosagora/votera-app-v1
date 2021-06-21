@@ -77,8 +77,10 @@ export const ProposalProvider = ({ children }: ProposalProviderProps): JSX.Eleme
                 const result = await joinProposalMutation({
                     variables: {
                         input: {
-                            actor: user?.memberId,
-                            id: proposalState?.id,
+                            data: {
+                                actor: user?.memberId,
+                                id: proposalState?.id,
+                            }
                         },
                     },
                 });
@@ -104,10 +106,12 @@ export const ProposalProvider = ({ children }: ProposalProviderProps): JSX.Eleme
         const data = await reportPostMutation({
             variables: {
                 input: {
-                    postId,
-                    activityId,
-                    proposalId : proposalState?.id || '',
-                    actor: user?.memberId || '',
+                    data: {
+                        postId,
+                        activityId,
+                        proposalId : proposalState?.id || '',
+                        actor: user?.memberId || '',
+                    }
                 }
             }
         });

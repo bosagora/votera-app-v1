@@ -4,14 +4,11 @@ import { InteractionItemFragmentDoc, ToggleLikeInput, useToggleLikeMutation } fr
 
 export const useInteraction = () => {
     const { user } = useContext(AuthContext);
-    // const [getInteractions, { data: interactionData, refetch: interactionRefetch }] = useGetInteractionsLazyQuery({
-    //     fetchPolicy: 'cache-and-network',
-    //     nextFetchPolicy: 'cache-first',
-    // });
+    
     const [toggleLike] = useToggleLikeMutation({
         update(cache, { data: { toggleLike } }) {
             // Cache Data 추가
-            console.log(' toggleLike cache update', toggleLike);
+            // console.log(' toggleLike cache update', toggleLike);
             if (toggleLike?.isLike) {
                 cache.modify({
                     id: `Post:${toggleLike.interaction?.post?.id}`,
@@ -48,9 +45,11 @@ export const useInteraction = () => {
             await toggleLike({
                 variables: {
                     input: {
-                        isLike,
-                        postId,
-                        memberId: user?.memberId,
+                        data: {
+                            isLike,
+                            postId,
+                            memberId: user?.memberId,
+                        }
                     },
                 },
             });
@@ -60,5 +59,4 @@ export const useInteraction = () => {
     }, []);
 
     return { runToggleLike };
-    // return { runToggleLike, interactionData, interactions, interactionRefetch };
 };

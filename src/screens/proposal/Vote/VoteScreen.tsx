@@ -35,7 +35,7 @@ const VoteScreen = (props: Props) => {
     const { onLayout } = props;
     const dispatch = useDispatch();
     const { proposal, isJoined, joinProposal } = useContext(ProposalContext);
-    const { user, isGuest } = useContext(AuthContext);
+    const { user, isGuest, getVoteSequence } = useContext(AuthContext);
 
     const [checked, setChecked] = useState(false);
     const [nodeAuth, setNodeAuth] = useState(false);
@@ -115,7 +115,13 @@ const VoteScreen = (props: Props) => {
                 return false;
             }
 
-            const voteLinkData = makeVoteLinkData(proposal?.proposalId, validatorLogin, validatorVote, vote, 100);
+            const voteLinkData = makeVoteLinkData(
+                proposal?.proposalId,
+                validatorLogin,
+                validatorVote,
+                vote,
+                getVoteSequence());
+
             openProposalVoteLink(voteLinkData).catch((err) => {
                 dispatch(
                     ActionCreators.snackBarVisibility({

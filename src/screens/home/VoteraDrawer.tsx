@@ -24,7 +24,6 @@ const VoteraDrawer = ({ navigation }: any) => {
             where: {
                 target: feedAddress,
                 isRead: false,
-                rejectId_ne: user?.memberId,
             },
         },
     });
@@ -136,6 +135,7 @@ const VoteraDrawer = ({ navigation }: any) => {
                         onPress={() => {
                             navigation.navigate('CreateScreens', {
                                 screen: 'CreateProposal',
+                                params: { saveData : {} },
                             });
                         }}
                     >
