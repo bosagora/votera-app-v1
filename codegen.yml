@@ -1,5 +1,5 @@
 overwrite: true
-schema: 'http://localhost:1337/graphql'
+schema: 'http://dev-votera.bosagora.com:1337/graphql'
 documents:
     - 'src/graphql/queries/**/*.graphql'
 generates:
