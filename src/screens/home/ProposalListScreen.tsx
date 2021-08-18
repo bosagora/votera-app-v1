@@ -44,7 +44,9 @@ function renderTitle(type: 'MY' | 'TEMP' | 'JOIN') {
 }
 
 function dateToStringDate(date: Date): string {
-    return `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()}`;
+    let m = date.getUTCMonth() + 1;
+    let d = date.getUTCDate();
+    return `${date.getUTCFullYear()}-${(m < 10) ? '0' + m : m.toString()}-${(d < 10) ? '0' + d : d.toString()}`;
 }
 
 function convertProposalToLocalProps(item: Proposal): LocalStorageProposalProps {
