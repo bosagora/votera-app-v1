@@ -6,6 +6,8 @@ import ReactNativeParallaxHeader from 'react-native-parallax-header';
 import FocusAwareStatusBar from '~/components/statusbar/FocusAwareStatusBar';
 import globalStyle from '~/styles/global';
 import Period from '~/components/status/Period';
+import PeriodBlock from '~/components/status/PeriodBlock';
+import PeriodTime from '~/components/status/PeriodTime';
 import DdayMark from '~/components/status/DdayMark';
 import ProposalContent from './ProposalContent';
 import { Enum_Proposal_Type } from '~/graphql/generated/generated';
@@ -21,7 +23,7 @@ const ProposalDetailScreen = ({ navigation, route }: MainNavProps<'ProposalDetai
     const [discussionAId, setDiscussionAId] = useState('');
     const [noticeAId, setNoticeAId] = useState('');
 
-    const { proposal } = useContext(ProposalContext);
+    const { proposal, estimatedPeriod } = useContext(ProposalContext);
 
     useEffect(() => {
         if (proposal) {
@@ -34,7 +36,7 @@ const ProposalDetailScreen = ({ navigation, route }: MainNavProps<'ProposalDetai
                 } else if (boardType === 'NOTICE') {
                     setNoticeAId(activity.id);
                 }
-            });
+            });            
         }
     }, [proposal]);
 
@@ -81,14 +83,25 @@ const ProposalDetailScreen = ({ navigation, route }: MainNavProps<'ProposalDetai
                         />
                     )}
 
-                    <Period
-                        type={getString('투표기간')}
+                    <PeriodBlock
+                        type={getString('유효 투표 블록')}
                         typeStyle={{ fontSize: 14 }}
                         periodStyle={{ fontSize: 13 }}
                         color="white"
-                        created={proposal?.votePeriod?.begin}
-                        deadline={proposal?.votePeriod?.end}
+                        start={proposal?.vote_start_height}
+                        end={proposal?.vote_end_height}
                     />
+
+                    {estimatedPeriod && (
+                        <PeriodTime
+                            type={getString('예상 투표 기간')}
+                            typeStyle={{ fontSize: 14 }}
+                            periodStyle={{ fontSize: 13 }}
+                            color="white"
+                            created={estimatedPeriod.begin}
+                            deadline={estimatedPeriod.end}
+                        />
+                    )}
                 </Animated.View>
             </View>
         );
@@ -110,7 +123,7 @@ const ProposalDetailScreen = ({ navigation, route }: MainNavProps<'ProposalDetai
                         type="clear"
                     />
 
-                    <DdayMark color="white" deadline={proposal?.votePeriod?.end} type={proposal?.type} />
+                    <DdayMark color="white" deadline={estimatedPeriod ? estimatedPeriod.end : proposal?.votePeriod?.end} type={proposal?.type} />
                 </View>
             </Animated.View>
         );

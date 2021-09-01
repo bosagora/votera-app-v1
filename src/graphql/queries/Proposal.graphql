@@ -17,6 +17,10 @@ query getProposalById($proposalId: String!) {
         ...ProposalItem
     }
     reportedPosts(proposalId: $proposalId)
+    estimatedVotePeriod(proposalId: $proposalId) {
+        begin
+        end
+    }
 }
 
 query getProposals($sort: String, $limit: Int, $start: Int, $where: JSON) {

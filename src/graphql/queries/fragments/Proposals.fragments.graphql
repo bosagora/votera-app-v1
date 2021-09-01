@@ -44,6 +44,8 @@ fragment ProposalItem on Proposal {
         begin
         end
     }
+    vote_start_height
+    vote_end_height
     fundingAmount
     logo {
         url

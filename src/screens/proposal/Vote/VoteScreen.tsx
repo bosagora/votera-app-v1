@@ -144,7 +144,7 @@ const VoteScreen = (props: Props) => {
                                 writer: user?.memberId,
                                 content: voteActivity?.poll?.questions?.map((q) => ({
                                     __typename: 'ComponentPostSingleChoiceAnswer',
-                                    selection: [{ value: vote }],
+                                    selection: [{ value: VOTE_SELECT.BLANK }], // do not save vote selection
                                     sequence: 0,
                                     question: q?.id,
                                 })),
@@ -163,7 +163,7 @@ const VoteScreen = (props: Props) => {
                                 status: Enum_Post_Status.Open,
                                 content: voteActivity?.poll?.questions?.map((q) => ({
                                     __typename: 'ComponentPostSingleChoiceAnswer',
-                                    selection: [{ value: vote }],
+                                    selection: [{ value: VOTE_SELECT.BLANK }], // do not save vote selection
                                     sequence: 0,
                                     question: q?.id,
                                 })),

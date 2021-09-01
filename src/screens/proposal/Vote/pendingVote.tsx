@@ -23,7 +23,7 @@ const LineComponent: React.FC = () => (
 );
 
 const PendingVote = (props: Props) => {
-    const { proposal } = useContext(ProposalContext);
+    const { proposal, estimatedPeriod } = useContext(ProposalContext);
     const { user } = useContext(AuthContext);
     const [lastStatus, setLastStatus] = useState<Enum_Fee_Status>();
     const themeContext = useContext(ThemeContext);
@@ -195,11 +195,16 @@ const PendingVote = (props: Props) => {
             </View>
 
             <View style={{ marginTop: 30 }}>
-                <Text style={globalStyle.btext}>{getString('투표 기간')}</Text>
-                <Text style={{ marginTop: 13 }}>{`${moment(new Date(proposal?.votePeriod?.begin)).format(
-                    'll',
-                )} ~ ${moment(new Date(proposal?.votePeriod?.end)).format('ll')}`}</Text>
+                <Text style={globalStyle.btext}>{getString('유효 투표 블록')}</Text>
+                <Text style={{ marginTop: 13 }}>{`${proposal?.vote_start_height} ~ ${proposal?.vote_end_height}`}</Text>
             </View>
+
+            {estimatedPeriod && (
+                <View style={{ marginTop: 30 }}>
+                    <Text style={globalStyle.btext}>{getString('예상 투표 기간')}</Text>
+                    <Text style={{ marginTop: 13 }}>{`${moment(estimatedPeriod.begin).format('lll')} ~ ${moment(estimatedPeriod.end).format('lll')}`}</Text>
+                </View>
+            )}
 
             <LineComponent />
 

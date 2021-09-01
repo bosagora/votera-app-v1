@@ -13,6 +13,7 @@ import { parseQrcodeValidatorLogin, parseQrcodeValidatorVote, ValidatorLogin, Va
 import ActionCreators from '~/state/actions';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import getString from '~/utils/locales/STRINGS';
+import { JSBI } from 'boa-sdk-ts';
 
 interface Props {
     onNodeAuthComplete: (validatorLogin: ValidatorLogin, validatorVote: ValidatorVote) => void;
@@ -22,8 +23,10 @@ const LineComponent: React.FC = () => (
     <View style={{ height: 1, width: '100%', backgroundColor: 'rgb(235,234,239)', marginVertical: 30 }} />
 );
 
+const DEFAULT_APP_NAME = 'Votera'
+
 const Authentication = (props: Props) => {
-    const { proposal } = useContext(ProposalContext);
+    const { proposal, estimatedPeriod, encryptionBlockHeight } = useContext(ProposalContext);
     const { user, getVoterCard, updateVoterCard, isValidVoterCard } = useContext(AuthContext);
     const themeContext = useContext(ThemeContext);
     const dispatch = useDispatch();
@@ -106,6 +109,14 @@ const Authentication = (props: Props) => {
                     Alert.alert(getString('현재 로그인한 노드의 qrcode가 아닙니다'));
                     return;
                 }
+                if (voteData.encryptionKey.app_name !== DEFAULT_APP_NAME) {
+                    Alert.alert(getString('현재 제안의 Ballot이 아닙니다'));
+                    return;
+                }
+                if (JSBI.notEqual(voteData.encryptionKey.height.value, JSBI.BigInt(encryptionBlockHeight(proposal)))) {
+                    Alert.alert(getString('현재 제안의 Ballot이 아닙니다'));
+                    return;
+                }
                 props.onNodeAuthComplete(validatorLogin, voteData);
             } catch (err) {
                 console.log('checkNode error = ', err);
@@ -134,11 +145,16 @@ const Authentication = (props: Props) => {
             </View>
 
             <View style={{ marginTop: 30 }}>
-                <Text style={globalStyle.btext}>{getString('투표 기간')}</Text>
-                <Text style={{ marginTop: 13 }}>{`${moment(new Date(proposal?.votePeriod?.begin)).format(
-                    'll',
-                )} ~ ${moment(new Date(proposal?.votePeriod?.end)).format('ll')}`}</Text>
+                <Text style={globalStyle.btext}>{getString('유효 투표 블록')}</Text>
+                <Text style={{ marginTop: 13 }}>{`${proposal?.vote_start_height} ~ ${proposal?.vote_end_height}`}</Text>
             </View>
+
+            {estimatedPeriod && (
+                <View style={{ marginTop: 30 }}>
+                    <Text style={globalStyle.btext}>{getString('예상 투표 기간')}</Text>
+                    <Text style={{ marginTop: 13 }}>{`${moment(estimatedPeriod.begin).format('lll')} ~ ${moment(estimatedPeriod.end).format('lll')}`}</Text>
+                </View>
+            )}
 
             <LineComponent />
 
@@ -183,6 +199,18 @@ const Authentication = (props: Props) => {
                 <Text style={defaultStyle}>Validator</Text>
                 <Text style={[globalStyle.ltext, { ...defaultStyle, marginLeft: 19, flex: 1 }]}>
                     {validatorLogin?.validator}
+                </Text>
+            </View>
+            <View style={{ flexDirection: 'row' }}>
+                <Text style={defaultStyle}>App Name</Text>
+                <Text style={[globalStyle.ltext, { ...defaultStyle, marginLeft: 19, flex: 1 }]}>
+                    {DEFAULT_APP_NAME}
+                </Text>
+            </View>
+            <View style={{ flexDirection: 'row' }}>
+                <Text style={defaultStyle}>Block Height</Text>
+                <Text style={[globalStyle.ltext, { ...defaultStyle, marginLeft: 19, flex: 1 }]}>
+                    {encryptionBlockHeight(proposal)}
                 </Text>
             </View>
             {!validValidator && (

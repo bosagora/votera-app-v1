@@ -110,20 +110,18 @@ const Voting = (props: Props) => {
         );
     };
 
-    const selectStr =
-        vote === VOTE_SELECT.YES ? getString('찬성') : vote === VOTE_SELECT.NO ? getString('반대') : getString('기권');
+    const selectStr = getString('투표 완료');
 
     return (
         <Container>
             {voteComplete ? (
                 <>
-                    <VoteItem text={selectStr} type={vote} onPress={() => {}} isSelect={true} />
                     <Text style={[globalStyle.btext, { color: themeContext.color.primary, marginTop: 18 }]}>
                         {getString('노드 {nodename} 으로').replace('{nodename}', user?.nodename || '')}
                     </Text>
                     <Text
-                        style={[globalStyle.btext, { color: themeContext.color[getVoteString(vote)], marginTop: 5 }]}
-                    >{getString('{select}했습니다!').replace('{select}', selectStr)}</Text>
+                        style={[globalStyle.btext, { color: themeContext.color.primary, marginTop: 5 }]}
+                    >{selectStr}</Text>
 
                     <ShortButton
                         title={getString('수정하기')}
