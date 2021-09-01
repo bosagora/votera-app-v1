@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useContext } from 'react';
 import {
     Proposal,
+    VotePeriodPayload,
     useGetProposalByIdLazyQuery,
     useJoinProposalMutation,
     useReportPostMutation,
@@ -11,12 +12,14 @@ import { AuthContext } from './AuthContext';
 
 type ProposalContextState = {
     proposal?: Proposal;
+    estimatedPeriod?: VotePeriodPayload;
     isJoined: boolean;
     fetchProposal: (proposalId: string) => void;
     canJoinProposal: () => boolean;
     joinProposal: () => Promise<boolean>;
     isReported: (postId: string) => boolean;
     reportPost: (activityId: string, postId: string) => Promise<boolean>;
+    encryptionBlockHeight: (proposal: Proposal | undefined) => number;
 };
 
 type ProposalProviderProps = {
@@ -32,9 +35,14 @@ export const useProposal = (): Proposal | undefined => {
 
 let reportedPosts = new Set<string>();
 
+function encryptionBlockHeight(proposal: Proposal | undefined) {
+    return (proposal?.vote_end_height || 0) + 7;
+}
+
 export const ProposalProvider = ({ children }: ProposalProviderProps): JSX.Element => {
     const { user } = useContext(AuthContext);
     const [proposalState, setProposalState] = useState<Proposal>();
+    const [estimatedPeriod, setEstimatedPeriod] = useState<VotePeriodPayload>();
     const [isJoined, setIsJoined] = useState(false);
 
     const [getProposalDetail] = useGetProposalByIdLazyQuery({
@@ -55,6 +63,12 @@ export const ProposalProvider = ({ children }: ProposalProviderProps): JSX.Eleme
                     }
                 }
             }
+            if (data.estimatedVotePeriod) {
+                const period = data.estimatedVotePeriod as VotePeriodPayload;
+                setEstimatedPeriod(period);
+            } else {
+                setEstimatedPeriod(undefined);
+            }
         },
     });
 
@@ -64,6 +78,7 @@ export const ProposalProvider = ({ children }: ProposalProviderProps): JSX.Eleme
     const fetchProposal = useCallback((proposalId: string) => {
         setProposalState(undefined);
         reportedPosts.clear();
+        setEstimatedPeriod(undefined);
         getProposalDetail({ variables: { proposalId }});
     }, []);
 
@@ -131,11 +146,13 @@ export const ProposalProvider = ({ children }: ProposalProviderProps): JSX.Eleme
             value={{
                 proposal: proposalState,
                 isJoined,
+                estimatedPeriod,
                 fetchProposal,
                 canJoinProposal,
                 joinProposal,
                 isReported,
                 reportPost,
+                encryptionBlockHeight,
             }}
         >
             {children}

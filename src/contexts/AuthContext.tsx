@@ -460,6 +460,12 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
                 };
             } catch (err) {
                 console.log('login exception : ', err);
+                if (err.graphQLErrors) {
+                    console.log('graphQLErrors = ', err.graphQLErrors);
+                }
+                if (err.networkError) {
+                    console.log('networkError = ', err.networkError);
+                }
                 return {
                     succeeded: false,
                     message: 'internal error',
