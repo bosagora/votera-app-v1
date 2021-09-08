@@ -11,7 +11,7 @@ import CommonButton from '~/components/button/CommonButton';
 import { AuthContext } from '~/contexts/AuthContext';
 import { parseQrcodeValidatorLogin, parseQrcodeValidatorVote, ValidatorLogin, ValidatorVote, StringToAmountFormat } from '~/utils/voterautil';
 import ActionCreators from '~/state/actions';
-import { ProposalContext } from '~/contexts/ProposalContext';
+import { ProposalContext, DEFAULT_APP_NAME } from '~/contexts/ProposalContext';
 import getString from '~/utils/locales/STRINGS';
 import { JSBI } from 'boa-sdk-ts';
 
@@ -22,8 +22,6 @@ interface Props {
 const LineComponent: React.FC = () => (
     <View style={{ height: 1, width: '100%', backgroundColor: 'rgb(235,234,239)', marginVertical: 30 }} />
 );
-
-const DEFAULT_APP_NAME = 'Votera'
 
 const Authentication = (props: Props) => {
     const { proposal, estimatedPeriod, encryptionBlockHeight } = useContext(ProposalContext);
@@ -133,6 +131,7 @@ const Authentication = (props: Props) => {
             ActionCreators.qrcodeScanner({
                 visibility: true,
                 action: ActionCreators.QRCodeActionType.Vote,
+                height: encryptionBlockHeight(proposal),
                 onComplete: checkVote,
             }),
         );
@@ -201,6 +200,11 @@ const Authentication = (props: Props) => {
                     {validatorLogin?.validator}
                 </Text>
             </View>
+            <Text style={{ marginTop: 13, lineHeight: 23 }}>
+                {getString(
+                    `아래의 정보를 아고라 관리자화면에 입력하여 QR코드를 생성한 후 아래 Ballot 검증 버튼을 클릭하십시오&#46;`,
+                )}
+            </Text>
             <View style={{ flexDirection: 'row' }}>
                 <Text style={defaultStyle}>App Name</Text>
                 <Text style={[globalStyle.ltext, { ...defaultStyle, marginLeft: 19, flex: 1 }]}>

@@ -8,6 +8,7 @@ enum QRCodeActionType {
 interface QRCodeScannerState {
     visibility: boolean;
     action?: QRCodeActionType,
+    height?: number;
     onComplete?: (data: string) => void;
     onCancel?: () => void;
 }

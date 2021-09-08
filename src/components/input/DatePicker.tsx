@@ -1,11 +1,13 @@
 import React, { useEffect, useContext } from 'react';
 import styled, { ThemeContext } from 'styled-components/native';
+import { useSelector } from 'react-redux';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Text } from 'react-native-elements';
 import globalStyle from '~/styles/global';
 import { DateObject } from 'react-native-calendars';
 import getString from '~/utils/locales/STRINGS';
+import ActionCreators, { ActionCreatorsState } from '~/state/actions';
 
 const Container = styled.View`
     flex-direction: row;
@@ -34,10 +36,20 @@ interface Props {
 const DatePickerComponent = (props: Props) => {
     const navigation = useNavigation();
     const themeContext = useContext(ThemeContext);
+    const selectDatePicker = useSelector((store: ActionCreatorsState) => store.selectDatePicker);
 
     useEffect(() => {
         calcDate();
     }, [props.value]);
+
+    useEffect(() => {
+        if (selectDatePicker && selectDatePicker.startDate && selectDatePicker.endDate) {
+            props.onChange({
+                startDate: selectDatePicker.startDate,
+                endDate: selectDatePicker.endDate
+            });
+        }
+    }, [selectDatePicker]);
 
     const calcDate = () => {
         if (Object.keys(props.value).length === 0) return getString('날짜를 선택해주세요');
@@ -63,7 +75,7 @@ const DatePickerComponent = (props: Props) => {
                 <TouchableOpacity
                     onPress={() =>
                         navigation.navigate('Calendar', {
-                            returnData: (date: any) => props.onChange(date),
+                            // returnData: (date: any) => props.onChange(date),
                             isAssess: props.isAssess,
                         })
                     }

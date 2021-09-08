@@ -39,6 +39,8 @@ function encryptionBlockHeight(proposal: Proposal | undefined) {
     return (proposal?.vote_end_height || 0) + 7;
 }
 
+export const DEFAULT_APP_NAME = 'Votera'
+
 export const ProposalProvider = ({ children }: ProposalProviderProps): JSX.Element => {
     const { user } = useContext(AuthContext);
     const [proposalState, setProposalState] = useState<Proposal>();
