@@ -9,6 +9,7 @@ import LoadingModalScreen from '~/components/shared/LoadingModal/screen';
 import ActionCreators, { ActionCreatorsState } from '~/state/actions';
 import globalStyle from '~/styles/global';
 import getString from '~/utils/locales/STRINGS';
+import { DEFAULT_APP_NAME } from '~/contexts/ProposalContext';
 
 interface QRCodeLoadingProps {
     show: boolean;
@@ -45,6 +46,7 @@ const QRCodeScanner = (): JSX.Element => {
     const [bounds, setBounds] = useState<BarCodeBounds>();
     const [layout, setLayout] = useState<LayoutRectangle>();
     const [loading, setLoading] = useState(false);
+    const defaultStyle = { lineHeight: 25 };
 
     useEffect(() => {
         (async () => {
@@ -157,7 +159,7 @@ const QRCodeScanner = (): JSX.Element => {
                 />
 
                 <View style={{ flex: 1, backgroundColor: 'white', padding: 20, marginBottom: 20 }}>
-                    <View style={{ paddingBottom: 50 }}>
+                    <View style={{ paddingBottom: 25 }}>
                         <Text style={globalStyle.btext}>{getString('인증 방법')}</Text>
                         <Text style={{ lineHeight: 23 }}>
                             {qrcodeScanner.action === ActionCreators.QRCodeActionType.Vote
@@ -168,6 +170,25 @@ const QRCodeScanner = (): JSX.Element => {
                                       `PC 노드 화면 > Congress 인증 화면의 QR코드를\n아래 화면에 비추면 자동으로 인증됩니다&#46;`,
                                   )}
                         </Text>
+                        {qrcodeScanner.action === ActionCreators.QRCodeActionType.Vote && (
+                            <View>
+                                <Text style={{ marginTop: 13, lineHeight: 23 }}>
+                                    {getString(`아래의 정보를 아고라 관리자화면에 입력하십시오&#46;`)}
+                                </Text>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={defaultStyle}>App Name</Text>
+                                    <Text style={[globalStyle.ltext, { ...defaultStyle, marginLeft: 19, flex: 1 }]}>
+                                        {DEFAULT_APP_NAME}
+                                    </Text>
+                                </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={defaultStyle}>Block Height</Text>
+                                    <Text style={[globalStyle.ltext, { ...defaultStyle, marginLeft: 19, flex: 1 }]}>
+                                        {qrcodeScanner.height}
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
                     </View>
                     <BarCodeScanner
                         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}

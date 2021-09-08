@@ -207,7 +207,7 @@ function getLocalUser(): User {
 const MAX_VOTE_SEQUENCE = 2^31 - 1;
 
 function getVoteSequence() {
-    return Math.floor(Math.random() * MAX_VOTE_SEQUENCE);
+    return Math.floor(Date.now() / 1000);
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {

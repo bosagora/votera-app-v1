@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { CalendarList, DateObject, LocaleConfig } from 'react-native-calendars';
+import { useDispatch } from 'react-redux';
 import { Button, Header, Text } from 'react-native-elements';
 import { ThemeContext } from 'styled-components/native';
 import { CreateNavProps } from '~/navigation/types/CreateStackParams';
@@ -8,7 +9,7 @@ import globalStyle from '~/styles/global';
 import moment from 'moment';
 import _ from 'lodash';
 import getString from '~/utils/locales/STRINGS';
-import * as Localization from 'expo-localization';
+import ActionCreators from '~/state/actions';
 
 LocaleConfig.locales['ko'] = {
     monthNames: ['일월', '이월', '삼월', '사월', '오월', '유월', '칠월', '팔월', '구월', '시월', '십일월', '십이월'],
@@ -21,6 +22,7 @@ LocaleConfig.defaultLocale = 'ko';
 
 const CalendarScreen = ({ navigation, route }: CreateNavProps<'Calendar'>) => {
     const themeContext = useContext(ThemeContext);
+    const dispatch = useDispatch();
     const [markedDates, setMarkedDates] = useState({});
     const [startDate, setStartDate] = useState<DateObject>();
     const [endDate, setEndDate] = useState<DateObject>();
@@ -68,7 +70,8 @@ const CalendarScreen = ({ navigation, route }: CreateNavProps<'Calendar'>) => {
                     title={getString('완료')}
                     onPress={() => {
                         if (startDate && endDate) {
-                            route.params.returnData({ startDate, endDate });
+                            dispatch(ActionCreators.selectDatePicker({ startDate, endDate }));
+                            // route.params.returnData({ startDate, endDate });
                             navigation.goBack();
                         }
                     }}
