@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Image, ScrollView, Alert } from 'react-native';
+import { View, Image, Alert } from 'react-native';
 import { Button, Icon, Text } from 'react-native-elements';
 import { useDispatch } from 'react-redux';
 import * as Application from 'expo-application';
@@ -67,7 +67,7 @@ const ConvertNode = ({ navigation, route }: MainDrawerProps<'ConvertNode'>): JSX
                             dispatch(ActionCreators.snackBarVisibility({ visibility: true, text: getString('삭제했습니다') }));
                         })
                         .catch((err) => {
-                            console.log('delteVoterCard error : ', err);
+                            console.log('deleteVoterCard error : ', err);
                             dispatch(ActionCreators.loadingAniModal({ visibility: false }));
                             dispatch(
                                 ActionCreators.snackBarVisibility({
@@ -130,61 +130,59 @@ const ConvertNode = ({ navigation, route }: MainDrawerProps<'ConvertNode'>): JSX
     return (
         <View style={{ flex: 1, backgroundColor: 'white' }}>
             <FocusAwareStatusBar barStyle="dark-content" backgroundColor="white" />
-            <ScrollView
-                contentContainerStyle={{ paddingVertical: 50 }}
-                style={{ paddingHorizontal: 22, paddingTop: 0 }}
-            >
-                <View>
-                    <Text style={{ fontSize: 13 }}>{getAppUpdate()}</Text>
-                    <Text
-                        style={[
-                            globalStyle.gbtext,
-                            {
-                                marginTop: 8.5,
-                                color: themeContext.color.primary,
-                            },
-                        ]}
+            <FlatList
+                ListHeaderComponent={
+                <>
+                    <View>
+                        <Text style={{ fontSize: 13 }}>{getAppUpdate()}</Text>
+                        <Text
+                            style={[
+                                globalStyle.gbtext,
+                                {
+                                    marginTop: 8.5,
+                                    color: themeContext.color.primary,
+                                },
+                            ]}
+                        >
+                            Ver {Application.nativeApplicationVersion}
+                        </Text>
+                    </View>
+                    <View style={{ marginTop: 60 }}>
+                        <Text style={[globalStyle.btext, { marginBottom: 15 }]}>{getString('현재 로그인한 노드')}</Text>
+                        {!isGuest && (
+                            <NowNode
+                                searchValue={user?.nodename || ''}
+                                value={user?.nodename}
+                                inputStyle={{ fontFamily: 'GmarketSansTTFBold' }}
+                                koreanInput
+                                placeholderText=""
+                                textDisable
+                            />
+                        )}
+                    </View>
+                    <TouchableOpacity
+                        style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 18 }}
+                        onPress={onClickSignout}
                     >
-                        Ver {Application.nativeApplicationVersion}
-                    </Text>
-                </View>
-                <View style={{ marginTop: 60 }}>
-                    <Text style={[globalStyle.btext, { marginBottom: 15 }]}>{getString('현재 로그인한 노드')}</Text>
-                    {!isGuest && (
-                        <NowNode
-                            searchValue={user?.nodename || ''}
-                            value={user?.nodename}
-                            inputStyle={{ fontFamily: 'GmarketSansTTFBold' }}
-                            koreanInput
-                            placeholderText=""
-                            textDisable
-                        />
-                    )}
-                </View>
-
+                        <Text style={{ fontSize: 13, color: themeContext.color.primary, textDecorationLine: 'underline' }}>
+                            {getString('로그아웃')}
+                        </Text>
+                    </TouchableOpacity>
+                    <View style={{ paddingTop: 23 }}>
+                        <Text style={[globalStyle.btext, { marginBottom: 15 }]}>{getString('등록된 다른 인증 노드')}</Text>
+                    </View>
+                </>
+                }
+                keyExtractor={(item, index) => 'node_' + index}
+                data={nodes}
+                renderItem={renderNodes}
+                style={{ paddingHorizontal: 22, paddingTop: 0 }}
+                ListEmptyComponent={
+                    <Text style={{ fontSize: 13 }}>{getString('등록되어 있는 다른 노드가 없습니다&#46;')}</Text>
+                }
+                ListFooterComponent={
                 <TouchableOpacity
-                    style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 18 }}
-                    onPress={onClickSignout}
-                >
-                    <Text style={{ fontSize: 13, color: themeContext.color.primary, textDecorationLine: 'underline' }}>
-                        {getString('로그아웃')}
-                    </Text>
-                </TouchableOpacity>
-
-                <View style={{ paddingVertical: 23 }}>
-                    <Text style={[globalStyle.btext, { marginBottom: 15 }]}>{getString('등록된 다른 인증 노드')}</Text>
-                    {nodes ? (
-                        <FlatList
-                            keyExtractor={(item, index) => 'node_' + index}
-                            data={nodes}
-                            renderItem={renderNodes}
-                        />
-                    ) : (
-                        <Text style={{ fontSize: 13 }}>{getString('등록되어 있는 다른 노드가 없습니다&#46;')}</Text>
-                    )}
-                </View>
-                <TouchableOpacity
-                    style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}
+                    style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingTop: 23 }}
                     onPress={onClickAddNode}
                 >
                     <Text style={[globalStyle.mtext, { color: themeContext.color.primary }]}>{getString('노드 추가인증')}</Text>
@@ -203,7 +201,8 @@ const ConvertNode = ({ navigation, route }: MainDrawerProps<'ConvertNode'>): JSX
                         <Image source={require('@assets/icons/nodePlusSvg.png')} />
                     </View>
                 </TouchableOpacity>
-            </ScrollView>
+                }
+            />
         </View>
     );
 };

@@ -10,7 +10,7 @@ import PeriodBlock from '~/components/status/PeriodBlock';
 import PeriodTime from '~/components/status/PeriodTime';
 import DdayMark from '~/components/status/DdayMark';
 import ProposalContent from './ProposalContent';
-import { Enum_Proposal_Type } from '~/graphql/generated/generated';
+import { Enum_Proposal_Type, Enum_Proposal_Status } from '~/graphql/generated/generated';
 import styles, { HEADER_HEIGHT } from './styles';
 import { ProposalContext } from '~/contexts/ProposalContext';
 import { useIsFocused } from '@react-navigation/core';
@@ -94,7 +94,7 @@ const ProposalDetailScreen = ({ navigation, route }: MainNavProps<'ProposalDetai
 
                     {estimatedPeriod && (
                         <PeriodTime
-                            type={getString('예상 투표 기간')}
+                            type={proposal?.status === Enum_Proposal_Status.Closed ? getString('투표 기간') : getString('예상 투표 기간')}
                             typeStyle={{ fontSize: 14 }}
                             periodStyle={{ fontSize: 13 }}
                             color="white"

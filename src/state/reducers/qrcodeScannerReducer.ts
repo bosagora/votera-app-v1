@@ -1,8 +1,10 @@
 import types from '../actions/types';
-import { QRCodeScannerAction, QRCodeScannerState } from '../actions/qrcodeScannerAction';
+import { QRCodeActionType, QRCodeScannerAction, QRCodeScannerState } from '../actions/qrcodeScannerAction';
 
 const initialState: QRCodeScannerState = {
     visibility: false,
+    action: QRCodeActionType.Validator,
+    height: 0,
     onComplete: () => {},
 };
 
@@ -15,6 +17,8 @@ const QRCodeScannerReducer = (
             return {
                 ...state,
                 visibility: action.payload.visibility,
+                action: action.payload.action,
+                height: action.payload.height,
                 onComplete: action.payload.onComplete,
             };
         }

@@ -756,15 +756,21 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
     const deleteVoterCard = useCallback(
         async (memberId: string, recovery?: boolean) => {
             if (!recovery) {
-                await deleteMemberMutate({
-                    variables: {
-                        input: {
-                            where: {
-                                id: memberId,
+                try {
+                    await deleteMemberMutate({
+                        variables: {
+                            input: {
+                                where: {
+                                    id: memberId,
+                                },
                             },
                         },
-                    },
-                });
+                    });
+                } catch (err) {
+                    if (err.message !== 'entry.notFound') {
+                        throw err;
+                    }
+                }
             }
 
             const findIndex = localStorage.members.findIndex((member) => member.memberId === memberId);
