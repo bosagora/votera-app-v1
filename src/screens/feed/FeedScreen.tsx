@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Image } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import { Button, Icon, Text } from 'react-native-elements';
 import globalStyle from '~/styles/global';
 import { MainNavProps } from '~/navigation/types/MainStackParams';
@@ -155,8 +155,7 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
 
     return (
         <>
-            <KeyboardAwareScrollView
-                style={{ flex: 1 }}
+            <KeyboardAwareFlatList
                 enableResetScrollToCoords={false}
                 onScrollEndDrag={() => {
                     fetchMoreUseGetNotificationsQuery &&
@@ -170,17 +169,16 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
                             setFeeds(feeds?.length === 0 ? [...moreFeeds] : [...feeds, ...moreFeeds]);
                         });
                 }}
-            >
-                <View
-                    style={{
-                        backgroundColor: 'white',
-                        borderTopLeftRadius: 10,
-                        borderTopRightRadius: 10,
-                        top: 0,
-                        paddingVertical: 29,
-                        paddingHorizontal: 23,
-                    }}
-                >
+                style={{
+                    flex: 1,
+                    backgroundColor: 'white',
+                    borderTopLeftRadius: 10,
+                    borderTopRightRadius: 10,
+                    top: 0,
+                    paddingVertical: 29,
+                    paddingHorizontal: 23,
+                }}
+                ListHeaderComponent={
                     <View style={[globalStyle.flexRowBetween, { paddingBottom: 2 }]}>
                         <View style={{ flexDirection: 'row' }}>
                             <Text style={{ fontSize: 13, fontFamily: 'NotoSansCJKkrLight' }}>{getString('새알림')}</Text>
@@ -190,13 +188,11 @@ const Feed = ({ route, navigation }: MainNavProps<'Feed'>) => {
                         </View>
                         <FilterButton filterType={FeedFilterType} currentFilter={filter} setFilter={setFilter} />
                     </View>
-                    <FlatList
-                        keyExtractor={(item, index) => 'feed_' + index}
-                        data={feeds}
-                        renderItem={renderFeedCard}
-                    />
-                </View>
-            </KeyboardAwareScrollView>
+                }
+                keyExtractor={(item, index) => 'feed_' + index}
+                data={feeds}
+                renderItem={renderFeedCard}
+            />
         </>
     );
 };

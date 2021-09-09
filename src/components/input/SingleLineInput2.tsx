@@ -99,7 +99,7 @@ const TextInputComponent = (props: TextInputComponentProps) => {
                     autoCapitalize="none"
                     inputStyle={[styles.input, inputStyle]}
                     inputContainerStyle={[styles.inputContainerStyle]}
-                    placeholderTextColor="rgb(112, 58, 222)"
+                    placeholderTextColor={themeContext.color.placeholder}
                     placeholder={placeholderText}
                     rightIcon={() => {
                         return changed && subComponent;
@@ -122,7 +122,7 @@ const TextInputComponent = (props: TextInputComponentProps) => {
                 inputStyle={[styles.input, inputStyle]}
                 inputContainerStyle={[styles.inputContainerStyle]}
                 placeholder={placeholderText}
-                placeholderTextColor="rgb(112, 58, 222)"
+                placeholderTextColor={themeContext.color.placeholder}
                 selectionColor={themeContext.color.primary}
                 rightIcon={subComponent}
             />

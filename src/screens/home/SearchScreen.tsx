@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Image, ScrollView } from 'react-native';
+import { View, Image } from 'react-native';
 import { Button, Icon, Text } from 'react-native-elements';
 import { ThemeContext } from 'styled-components/native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
@@ -139,40 +139,36 @@ const Search = ({ navigation, route }: MainNavProps<'Search'>): JSX.Element => {
     }
     function renderSearchedComponent() {
         return (
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 23, paddingBottom: 160 }}>
-                <View style={{ paddingTop: 30, flexDirection: 'row' }}>
-                    <Text>'{searchValue}' {getString('검색 결과')} </Text>
-                    <Text style={{ color: themeContext.color.primary, paddingLeft: 19 }}>{getString('N 개').replace('N', (proposals?.length || 0).toString())}</Text>
-                </View>
-                <View>
-                    {proposals && (
-                        <FlatList
-                            keyExtractor={(item, index) => 'proposal_' + index}
-                            style={{ backgroundColor: 'white' }}
-                            data={proposals || []}
-                            renderItem={renderProposals}
-                            ListEmptyComponent={
-                                <View
-                                    style={[
-                                        globalStyle.flexRowBetween,
-                                        {
-                                            paddingTop: 30,
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        },
-                                    ]}
-                                >
-                                    <Image source={require('@assets/icons/search/searchGrayIcon.png')} />
-                                    <Text style={{ color: 'rgb(182, 175, 198)', paddingLeft: 6 }}>
-                                        {getString('검색 결과가 없습니다&#46;')}
-                                    </Text>
-                                </View>
-                            }
-                        />
-                    )}
-                </View>
-            </ScrollView>
+            <FlatList 
+                ListHeaderComponent={
+                    <View style={{ paddingTop: 30, flexDirection: 'row' }}>
+                        <Text>'{searchValue}' {getString('검색 결과')} </Text>
+                        <Text style={{ color: themeContext.color.primary, paddingLeft: 19 }}>{getString('N 개').replace('N', (proposals?.length || 0).toString())}</Text>
+                    </View>
+                }
+                keyExtractor={(item, index) => 'proposal_' + index}
+                style={{ backgroundColor: 'white', paddingHorizontal: 23, paddingBottom: 160 }}
+                data={proposals || []}
+                renderItem={renderProposals}
+                ListEmptyComponent={
+                    <View
+                        style={[
+                            globalStyle.flexRowBetween,
+                            {
+                                paddingTop: 30,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            },
+                        ]}
+                    >
+                        <Image source={require('@assets/icons/search/searchGrayIcon.png')} />
+                        <Text style={{ color: 'rgb(182, 175, 198)', paddingLeft: 6 }}>
+                            {getString('검색 결과가 없습니다&#46;')}
+                        </Text>
+                    </View>
+                }
+            />
         );
     }
 
@@ -239,7 +235,7 @@ const Search = ({ navigation, route }: MainNavProps<'Search'>): JSX.Element => {
                             </View>
                         )
                     }
-                    onSubmitEditing={runSearch}
+                    onSubmitEditing={(e) => runSearch(e.nativeEvent.text)}
                     placeholderText={getString('검색어를 입력해주세요')}
                 />
             </View>
