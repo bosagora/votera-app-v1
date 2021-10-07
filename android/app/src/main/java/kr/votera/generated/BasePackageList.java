@@ -1,4 +1,4 @@
-package com.votera.generated;
+package kr.votera.generated;
 
 import java.util.Arrays;
 import java.util.List;

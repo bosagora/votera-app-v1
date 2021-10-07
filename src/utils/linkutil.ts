@@ -1,5 +1,5 @@
 import * as Linking from 'expo-linking';
-import { LinkDataWithProposalFee, LinkDataWithProposalData, LinkDataWithVoteData } from 'boa-sdk-ts/lib/modules/wallet/LinkData'
+import { LinkDataWithProposalFee, LinkDataWithProposalData, LinkDataWithVoteData } from 'boa-sdk-ts'
 import { walletFeeURL, walletDataURL, walletVoteURL } from '../../config/ServerConfig';
 import { getProposalVoteResultURL } from '~/utils/agoraconf';
 
