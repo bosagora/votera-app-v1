@@ -8,9 +8,45 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:810943671660:android:8cd756df0a3f6d2b165749",
+        "mobilesdk_app_id": "1:810943671660:android:f72d58c61f8a8d5f165749",
         "android_client_info": {
-          "package_name": "com.votera"
+          "package_name": "kr.smartauth.votera"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "810943671660-adsuh17sm4umv0ail6vf3kugm01o0g1f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1imzj_vhJmiv_h7uZnYEBUnlUbuKSnbM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "810943671660-adsuh17sm4umv0ail6vf3kugm01o0g1f.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "810943671660-4aq81k8nja5g0654557d0sto21umcl7n.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.votera.test"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:810943671660:android:991684a0c9d4900e165749",
+        "android_client_info": {
+          "package_name": "kr.votera"
         }
       },
       "oauth_client": [

@@ -1,4 +1,4 @@
-package com.votera;
+package kr.votera;
 
 import android.os.Bundle;
 

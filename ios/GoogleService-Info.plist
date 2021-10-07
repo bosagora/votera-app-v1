@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>810943671660-4aq81k8nja5g0654557d0sto21umcl7n.apps.googleusercontent.com</string>
+	<string>810943671660-lufjhaecaodtdlnnc5mv1a7a8blnef59.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.810943671660-4aq81k8nja5g0654557d0sto21umcl7n</string>
+	<string>com.googleusercontent.apps.810943671660-lufjhaecaodtdlnnc5mv1a7a8blnef59</string>
 	<key>API_KEY</key>
 	<string>AIzaSyCfpjv1WlHJ06VznUAXy5PZiuWR03PFsnw</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.votera.test</string>
+	<string>kr.votera</string>
 	<key>PROJECT_ID</key>
 	<string>votera-2c754</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,7 +29,7 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:810943671660:ios:d2de17b0ab13fb22165749</string>
+	<string>1:810943671660:ios:83edf34ffb5391e6165749</string>
 	<key>DATABASE_URL</key>
 	<string>https://votera-2c754.firebaseio.com</string>
 </dict>
