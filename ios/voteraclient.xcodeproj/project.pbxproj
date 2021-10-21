@@ -14,6 +14,8 @@
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		96905EF65AED1B983A6B3ABC /* libPods-voteraclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 58EEBF8E8E6FB1BC6CAF49B5 /* libPods-voteraclient.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		BCA10E6E2720FA6200AE6881 /* appsealing.lic in Resources */ = {isa = PBXBuildFile; fileRef = BCA10E6B2720FA6200AE6881 /* appsealing.lic */; };
+		BCA10E6F2720FA6200AE6881 /* AppsealingiOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BCA10E6C2720FA6200AE6881 /* AppsealingiOS.mm */; };
 		E9197E2F26291C7300F91C9D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9197E2E26291C7300F91C9D /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -31,6 +33,9 @@
 		7A4D352CD337FB3A3BF06240 /* Pods-voteraclient.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-voteraclient.release.xcconfig"; path = "Target Support Files/Pods-voteraclient/Pods-voteraclient.release.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = voteraclient/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		BCA10E6B2720FA6200AE6881 /* appsealing.lic */ = {isa = PBXFileReference; lastKnownFileType = file; name = appsealing.lic; path = AppSealingSDK/Libraries/appsealing.lic; sourceTree = "<group>"; };
+		BCA10E6C2720FA6200AE6881 /* AppsealingiOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppsealingiOS.mm; path = AppSealingSDK/Libraries/AppsealingiOS.mm; sourceTree = "<group>"; };
+		BCA10E6D2720FA6200AE6881 /* AppsealingiOS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppsealingiOS.h; path = AppSealingSDK/Libraries/AppsealingiOS.h; sourceTree = "<group>"; };
 		CA6FE6E959034BABB35DBEF9 /* voteraclient-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "voteraclient-Bridging-Header.h"; path = "voteraclient/voteraclient-Bridging-Header.h"; sourceTree = "<group>"; };
 		E9197E2E26291C7300F91C9D /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -94,6 +99,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				BCA10E6B2720FA6200AE6881 /* appsealing.lic */,
+				BCA10E6D2720FA6200AE6881 /* AppsealingiOS.h */,
+				BCA10E6C2720FA6200AE6881 /* AppsealingiOS.mm */,
 				13B07FAE1A68108700A75B9A /* voteraclient */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -157,7 +165,6 @@
 				LastUpgradeCheck = 1210;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = DM5P29M4GD;
 						LastSwiftMigration = 1120;
 						ProvisioningStyle = Automatic;
 					};
@@ -186,6 +193,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BCA10E6E2720FA6200AE6881 /* appsealing.lic in Resources */,
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				E9197E2F26291C7300F91C9D /* GoogleService-Info.plist in Resources */,
@@ -307,6 +315,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
+				BCA10E6F2720FA6200AE6881 /* AppsealingiOS.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -436,8 +445,10 @@
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-lStaticAppSec_Debug",
+					"-L$(PROJECT_DIR)/AppSealingSDK/Libraries",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = kr.votera;
+				PRODUCT_BUNDLE_IDENTIFIER = kr.votera.app;
 				PRODUCT_NAME = Votera;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "voteraclient/voteraclient-Bridging-Header.h";
@@ -459,7 +470,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = DM5P29M4GD;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "arm64 i386";
 				INFOPLIST_FILE = voteraclient/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -546,8 +557,10 @@
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
+					"-lStaticAppSec",
+					"-L$(PROJECT_DIR)/AppSealingSDK/Libraries",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = kr.votera;
+				PRODUCT_BUNDLE_IDENTIFIER = kr.votera.app;
 				PRODUCT_NAME = Votera;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "voteraclient/voteraclient-Bridging-Header.h";

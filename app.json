@@ -16,14 +16,14 @@
         "assetBundlePatterns": ["**/*"],
         "ios": {
             "supportsTablet": true,
-            "bundleIdentifier": "kr.votera"
+            "bundleIdentifier": "kr.votera.app"
         },
         "android": {
             "adaptiveIcon": {
                 "foregroundImage": "./assets/adaptive-icon.png",
                 "backgroundColor": "#FFFFFF"
             },
-            "package": "kr.votera"
+            "package": "kr.votera.app"
         },
         "web": {
             "favicon": "./assets/favicon.png"

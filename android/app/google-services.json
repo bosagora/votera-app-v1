@@ -44,9 +44,9 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:810943671660:android:991684a0c9d4900e165749",
+        "mobilesdk_app_id": "1:810943671660:android:0320133b10a4003a165749",
         "android_client_info": {
-          "package_name": "kr.votera"
+          "package_name": "kr.votera.app"
         }
       },
       "oauth_client": [

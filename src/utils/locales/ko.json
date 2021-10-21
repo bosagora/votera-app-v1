@@ -42,7 +42,7 @@
     "사업 제안": "BUSINESS",
     "시스템 제안": "SYSTEM",
     "제안 유형": "Select type",
-    "Votera 계정을 만들기 위해서는 최소1개 이상의 유효한\nBOSAGORA 노드를 보유하고 계셔야 합니다&#46;": "You need at least one valid BOSAGORA node in order to create Votera account",
+    "Votera 계정을 만들기 위해서는 최소 1개 이상의 유효한\nBOSAGORA 노드를 보유하고 계셔야 합니다&#46;": "You need at least one valid BOSAGORA node in order to create Votera account",
     "주의사항": "Warning",
     "각각의 노드는": "Each node must own",
     "이상 보유하고 있어야 합니다&#46;\n- 이미 인증된 노드라도, 해당 노드가 보유하고 있는 보아가": "or more&#46;\n If the node you possessed is less then",
@@ -206,7 +206,7 @@
     "아래의 정보를 아고라 관리자화면에 입력하십시오&#46;": "Input following information to Agora Admin page",
     "VoterCard가 유효하지 않습니다&#46; 다시 노드를 인증해주세요": "Invalid votercard&#46; please verify your node again&#46;",
     "Ballot 검증": "Ballot Verification",
-    "투표 기간이 아직 시작하지 않았습니다&#46;": "voting period not started yet",
+    "투표가 아직 시작되지 않았습니다&#46;": "voting hasn't started yet",
     "찬성": "Yes",
     "반대": "No",
     "기권": "Abstain",
@@ -301,5 +301,8 @@
     "${proposalTitle} 투표가 종료되었습니다&#46; 결과를 확인해보세요&#46;": "The vote for ${proposalTitle} has ended. Check out the results",
     "${proposalTitle}에 새로운 공지가 등록되었습니다&#46; 확인해보세요&#46;": "There are new notices on ${proposalTitle}. Please check it.",
     "${userName}님이 당신의 의견에 댓글을 남겼습니다": "${userName} replied to your comment",
-    "${userName}님이 당신의 의견을 추천했습니다": "${userName} liked your comment"
+    "${userName}님이 당신의 의견을 추천했습니다": "${userName} liked your comment",
+    "새로고침": "Refresh",
+    "유효 투표 블록": "Valid voting block",
+    "인증이 정상적으로 처리되지 않았습니다&#46; 코드 확인후 다시 시도해주세요!": "Fail to authenticate. Please check the code and try again"
 }

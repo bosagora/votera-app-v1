@@ -1,0 +1,812 @@
+#!/usr/bin/env ruby
+
+=begin
+============================================================================================
+|  AppSealing iOS SDK Hash Generator V1.0                                                  |
+|                                                                                          |
+|  * presented by Inka Entworks                                                            |
+============================================================================================
+=end
+
+require 'pathname'
+require 'tmpdir'
+require 'securerandom'
+require 'net/https'
+require 'json'
+
+$baseURL = 'https://api.appsealing.com/covault/gw/'
+
+#--------------------------------------------------------------------------------------------
+#  _CodeSignature/CodeResources 파일을 읽어 <key>files</key> 항목의 모든 데이터를 문자열로 변환하여 리턴
+#--------------------------------------------------------------------------------------------
+def generate_hash_snapshot( path )
+
+	dict = false
+	data = false
+	key = ''
+	expect_data = false
+	snapshot = ""
+
+	begin
+		file = File.open( path )
+		file.each_line do |line|
+			sline = line.strip
+			break if sline.start_with?( "<key>files2</key>" )	# files2 항목은 건너 뛴다
+			if sline.start_with?( "<key>files</key>" )
+				next
+			end
+
+			if !expect_data and sline.start_with?( "<key>" ) and sline.end_with?( "</key>" )	# key 추출
+				key = sline.gsub( "<key>", "" ).gsub( "</key>", "" )
+				expect_data = true
+				snapshot += ( key + "," )	# 스냅샷에 추가
+			end
+			dict = true if sline.start_with?( "<dict>" ) and expect_data
+			dict = expect_data = false if sline.start_with?( "</dict>" ) and dict and expect_data
+			if sline.start_with?( "<data>" ) and expect_data
+				data = true
+				next
+			end
+			if sline.start_with?( "</data>" )
+				data = false;
+				expect_data = false if !dict
+			end
+			if expect_data and data
+				snapshot += ( sline + "\n" )	# 스냅샷에 추가
+				next
+			end
+		end
+	rescue => e
+		puts ".\n.\nInvalid IPA file has passed to an argument, check your IPA file and try again.\n.\n.\n"
+		exit( false )
+	ensure
+		file.close unless file.nil?
+	end
+	return snapshot
+end
+
+#--------------------------------------------------------------------------------------------
+#  Payload/app의 certificate와 entitlement를 이용하여 genesis가 추가된 Payload/app에 다시 codesign을 수행
+#--------------------------------------------------------------------------------------------
+def sign_app_payload( _app, folder, generate_info_only )
+	cert = ''
+	app = '"' + _app + '"'
+	begin
+		# 1 app 서명에 사용된 인증서 추출
+		system( "cd " + folder + ";codesign -d --extract-certificates " + app )
+
+		cmd = "openssl x509 -inform DER -in " + folder + "codesign0 -noout -nameopt multiline"
+
+		if generate_info_only then
+			# 2. provision 추출
+			system( "security cms -D -i " + app + "/embedded.mobileprovision > " + folder + "provision.plist" )
+
+			# 3. entitlement 생성
+			system( "/usr/libexec/PlistBuddy -x -c 'Print :Entitlements' " + folder + "provision.plist > " + folder + "entitlements.plist" )
+
+			# genesis에 저장할 인증서 정보 추출
+			certopt = "no_header,no_version,no_serial,no_signame,no_subject,no_issuer,no_validity,no_pubkey,no_sigdump,no_aux,no_extensions"
+			system( cmd + ",utf8 -subject -issuer -serial -pubkey -text -dates -certopt " + certopt + " > " + folder + "certificate.txt" )
+			return
+		end
+
+		# 4 추출된 leaf 인증서를 X.509 형식으로 변환
+		system( cmd + ",-esc_msb,utf8 -subject > " + folder + "certificate.pem" )
+
+		# 5 인증서 명 추출
+		file = File.open( folder + "certificate.pem" )
+		file.each_line do |line|
+			sline = line.strip
+			next unless sline.start_with?( "commonName " )
+			cert = sline.split( '=' )[1].strip
+			break
+		end
+		file.close unless file.nil?
+
+		if cert == ''
+			puts ".\n.\nCannot get certificate information, check your IPA file and try again.\n.\n.\n"
+			exit( false )
+		end
+		
+		# 6 추출된 인증서가 시스템 키체인에 등록된 인증서인지 확인
+		valid = false
+		system( "security find-identity -v -p codesigning > " + folder + "certificates" )
+		file = File.open( folder + "certificates" )
+		file.each_line do |line|
+			valid = true if line.strip.include?( cert )
+		end
+		if !valid
+			puts "build cert = " + cert
+			puts ".\n.\nThe certificate used to sign your IPA does not exist in your system, check your system's key-chain and try again.\n.\n.\n"
+			exit( false )
+		end
+		file.close unless file.nil?
+
+		# 7 Info.plist 파일을 XML 형식으로 변환
+		system( "plutil -convert xml1 " + app + "/Info.plist" )
+
+		# 8 codesign 실행
+		system( "rm -r " + app + "/_CodeSignature" )
+		system( 'codesign -f -s "' + cert + '" --entitlements ' + folder + 'entitlements.plist ' + app + '/' )
+		#system( 'codesign -f -s "' + cert + '" --entitlements /Users/puzznic/Documents/inka_entitlements.plist ' + app + '/' )
+	rescue => e
+		puts ".\n.\nProblem has occurred while code-signing your app, please try again.\n[Error] " + e.to_s + "\nIf this error occurs continuously, contact AppSealing Help Center.\n.\n.\n"
+		exit( false )
+	end
+end
+
+
+#--------------------------------------------------------------------------------------------
+#  appsealing.lic 파일 암호화
+#--------------------------------------------------------------------------------------------
+def encrypt_license_file( path )
+	begin
+		license = File.open( path, "r+b" )
+
+		header = license.read( 8 )
+		magic = "\x41\x53\x4C\x46\x0A\x0D\x00\x00".force_encoding( Encoding::ASCII_8BIT )
+		body = nil
+		encrypted = 0
+
+		accountIDhash = []
+
+		if header == magic then
+			$sdk_version = license.read( 48 ).gsub( /\000/, '' )
+			#puts " ===> version : " + $sdk_version
+			encrypted = license.read( 1 ).unpack( 'C' ).first
+			#puts " ===> enc : " + encrypted.to_s
+			length = license.read( 4 ).unpack( 'N' ).first
+			#puts " ===> len =  " + length.to_s
+			
+			if encrypted == 0 then
+				license.rewind
+				header = license.read( 64 ).unpack( 'c*' )
+				header[56] = 1 #encrypted
+
+				body = license.read( length )
+				
+				# account ID hash 추출
+				base_bitmask = body[0].unpack( 'C' ).first
+				bundleIDhash_bitmask = body[1].unpack( 'C' ).first ^ base_bitmask
+				accountIDhash_bitmask = body[bundleIDhash_bitmask + 2].unpack( 'C' ).first ^ base_bitmask
+				accountIDhash[accountIDhash_bitmask - 1] = 0
+				accountIDhash.fill( 0 )		
+				index = 0
+				accountIDhash.map do | byte |
+					accountIDhash[index] = body[bundleIDhash_bitmask + index + 3].unpack( 'C' ).first ^ accountIDhash_bitmask ^ base_bitmask
+					index += 1
+				end
+				$account_id_hash = accountIDhash.pack( 'c*' ).unpack( 'H*' ).first
+				#puts "######## account id : " + $account_id_hash
+
+				license.rewind
+				license.write header.pack( 'c*' )
+			else
+				license.rewind
+				license.read( 64 + 16 )	# header + iv
+				key = license.read( 149 ).unpack( 'c*' ) # for XOR
+
+				# account ID hash 추출
+				accountIDhash = license.read( 32 ).unpack( 'c*' )
+
+				index = 0
+				accountIDhash.map do | byte |
+					accountIDhash[index] = byte ^ key[index]
+					index += 1
+				end	
+				$account_id_hash = accountIDhash.pack( 'c*' ).unpack( 'H*' ).first
+				#puts " ===> account id : " + $account_id_hash
+			end
+		else
+			body = File.read( path )
+			bodydata = body.unpack( 'C*' )
+
+			# account ID hash 추출
+			index = 0
+			base_bitmask = bodydata[index]
+			#puts "base bitmask ==> " + base_bitmask.to_s
+
+			index += 1
+			bundleIDhash_bitmask = bodydata[index] ^ base_bitmask
+			#puts "bundleIDhash_bitmask ==> " + bundleIDhash_bitmask.to_s
+
+			index += ( 1 + bundleIDhash_bitmask )
+			accountIDhash_bitmask = bodydata[index] ^= base_bitmask
+			#puts "accountIDhash_bitmask[" + index.to_s + "] ==> " + accountIDhash_bitmask.to_s
+			accountIDhash[31] = 0
+			accountIDhash.fill( 0 )		
+			index = 0
+			accountIDhash.map do | byte |
+				accountIDhash[index] = bodydata[bundleIDhash_bitmask + index + 3] ^ accountIDhash_bitmask ^ base_bitmask
+				index += 1
+			end
+			$account_id_hash = accountIDhash.pack( 'c*' ).unpack( 'H*' ).first
+			#puts "######## account id : " + $account_id_hash
+
+			# create header
+			header = []
+			header[63] = 0
+			header.fill( 0 )
+
+			index = 0
+			magic.bytes.map do | byte |
+				header[index] = byte
+				index += 1
+			end
+
+			version = $sdk_version.force_encoding( Encoding::ASCII_8BIT )
+			version.bytes.map do | byte |
+				header[index] = byte
+				index += 1
+			end
+
+			header[56] = 1 #encrypted
+			index = 57
+			len = body.unpack1( 'H*' ).length / 2
+			[len].pack( 'N' ).unpack( 'CCCC' ).map do | byte |
+				header[index] = byte
+				index += 1
+			end
+			header[61] = header[62] = header[63] = 0
+
+			license.rewind
+			license.write header.pack( 'c*' )
+		end
+
+		if body != nil then
+
+			$current_step += 1
+			puts "\n" + $current_step.to_s + ". Encrypting license file ..."
+
+			len = body.unpack1( 'H*' ).length / 2
+			# encode lic file contents
+			aes = OpenSSL::Cipher::AES.new( "128-CTR" )
+			aes.encrypt
+			aes.key = [$plainKey].pack( 'H*' )
+			aes.iv = [$iv].pack( 'H*' )
+			encrypted = aes.update( body ) + aes.final
+
+			license.write [$iv].pack( 'H*' )
+			license.write [$exportedKey].pack( 'H*' )
+
+			index = 0
+			accountIDhash.map do | byte |
+				accountIDhash[index] ^= [$exportedKey].pack( 'H*' )[index].unpack( 'C' ).first
+				index += 1
+			end	
+			license.write accountIDhash.pack( 'c*' )
+			license.write encrypted
+		end		
+	rescue => e
+		puts ".\n.\nProblem has occurred while encrypting license information, please try again.\n[Error] " + e.to_s + "\nIf this error occurs continuously, contact AppSealing Help Center.\n.\n.\n"
+		exit( false )
+	ensure
+		license.close unless license.nil?
+	end
+end
+
+#--------------------------------------------------------------------------------------------
+#  JavaScript bytecode(main.jsbundle) 파일 암호화
+#--------------------------------------------------------------------------------------------
+def encrypt_javascript_bytecode( app )
+	if $sdk_version.start_with?( 'NEW' ) then
+		$sdk_version = '1.0.0.0'
+	end
+
+	$current_step += 1
+	puts "\n" + $current_step.to_s + ". Encrypting React Native javascript bytecode file ..."
+
+	system( 'cd "' + app.to_s + '";zip -q main.zip main.jsbundle' )
+	jsfile = File.open( app.to_s + "/main.zip", "rb" )
+	result_path = app.to_s + "/enc_main.zip"
+
+	# 7-1. bundle ID 및 account ID hash 추출
+	sealing_api  = $baseURL + 'html5/requestSealingForIOS'
+	check_api    = $baseURL + 'html5/sealingStatusForIOS'
+	download_api = $baseURL + 'html5/downloadSealedFileForIOS'
+
+	finished = false
+
+	uiThread = Thread.new {
+		print '  ==> Processing for sealing '
+		loop do
+			print '.'		
+			sleep 0.5
+			break if finished
+		end
+		print ' Done!'
+		puts ''
+	}
+
+	netThread = Thread.new {
+		begin
+			# 7-2. 암호화(실링) 요청
+			uri = URI( sealing_api )
+			request = Net::HTTP::Post.new( uri )
+			form_data =
+			[
+				['bundle_id', $bundle_id],
+				['account_id_hash', $account_id_hash],
+				['sdk_version', $sdk_version],
+				['html5file', jsfile]
+			]
+			request.set_form form_data, 'multipart/form-data'
+			response = Net::HTTP.start( uri.hostname, uri.port, use_ssl: true ) do |http|
+				http.request( request )
+			end
+
+			# 7-3. 결과 확인 및 pack_id 추출
+			result = JSON.parse( response.body )
+			code = result['result']['code']
+			if code != '0000' then
+				raise result['result']['message']
+			end
+			pack_id = result['SEALING_INFO']['pack_id']
+
+
+			# 7-4. 암호화(실링) 상태 확인
+			uri = URI( check_api )
+			request = Net::HTTP::Post.new( uri )
+			form_data = [['pack_id', pack_id]]
+			request.set_form form_data, 'multipart/form-data'
+
+			loop do
+				response = Net::HTTP.start( uri.hostname, uri.port, use_ssl: true ) do |http|
+					http.request( request )
+				end
+
+				result = JSON.parse( response.body )
+				code = result['result']['code']
+				status = result['SEALING_INFO']['status']
+				if code != '0000' then
+					raise result['result']['message']
+				end
+
+				case status
+				when '2'
+					break
+				when '3'
+					raise result['SEALING_INFO']['message']
+				end
+				sleep 0.5	# 0.5초 간격으로 확인
+			end
+
+
+			# 7-5. 암호화(실링) 파일 다운로드
+			uri = URI( download_api )
+			request = Net::HTTP::Post.new( uri )
+			form_data =
+			[
+				['bundle_id', $bundle_id],
+				['account_id_hash', $account_id_hash],
+				['pack_id', pack_id]
+			]
+			request.set_form form_data, 'multipart/form-data'
+
+			response = Net::HTTP.start( uri.hostname, uri.port, use_ssl: true ) do |http|
+				http.request( request )
+			end
+
+			begin
+				result = JSON.parse( response.body )
+				code = result['result']['code']
+			rescue => e
+				# File response !!
+				open( result_path, "wb") do |file|
+					file.write( response.body )
+				end	
+				system( 'cd "' + app.to_s + '";unzip -qo enc_main.zip' )
+				File.delete( app.to_s + '/main.zip' ) if File.exist?( app.to_s + '/main.zip' )
+				File.delete( app.to_s + '/enc_main.zip' ) if File.exist?( app.to_s + '/enc_main.zip' )
+				system( 'xattr -cr "' + app.to_s + '/main.jsbundle"' )
+			end
+		rescue => e
+			puts ".\n.\nCannot connect to AppSealing server or bad response, check your network status and try again."
+			puts "[Error] " + e.to_s + "\n"
+			puts "** Your data : \n  > bundle ID : " + $bundle_id + "\n  > Account ID : " + $account_id_hash + "\n  > SDK version : " + $sdk_version + "\n"
+			puts "If this error occurs continuously, contact AppSealing Help Center.\n.\n.\n"
+			exit( false )
+		end
+		finished = true
+	}
+	netThread.join
+	uiThread.join
+
+	$current_step += 1
+	puts "\n" + $current_step.to_s + ". Successfully encrypted javascript bytecode ..."
+end
+
+#--------------------------------------------------------------------------------------------
+# main
+#--------------------------------------------------------------------------------------------
+if __FILE__ == $0
+	if ( ARGV.length != 1 and ARGV.length != 2 ) or File.extname( ARGV[0] ).delete( '.' ).downcase[0..-1] != 'ipa'
+		puts ".\n.\nusage: generate_hash YourApp.IPA [URL scheme:optional]\n.\n.\n"
+		exit( false )
+	end
+
+	puts <<~INTRO
+	
+	+-------------------------------------------------------------------------------------+
+	|                                                                                     |
+	|  AppSealing IPA Hash Generator V1.0.3 : provided by INKA Entworks                   |
+	|                                                                                     |
+	+-------------------------------------------------------------------------------------+
+	
+	INTRO
+	puts "[Target IPA]        = " + ARGV[0].to_s
+	
+	# Unreal Shipping IPA를 App Store Connect에 업로드 할 때 "ERROR ITMS-90158" 오류가 발생하면
+	# 이 파라미터를 추가해 Info.plist의 CFBundleURLSchemes 값을 새로 설정하여 오류를 수정할 수 있음
+	puts "[URL Scheme]        = " + ARGV[1].to_s
+
+	#........................................................................................
+	# [Step 1] IPA 압축 해제
+	
+	if !File.exist?( ARGV[0].to_s ) then
+		puts ".\n.\nIPA file does not exist, please check path the IPA.\n.\n.\n"
+		exit( false )
+	end
+
+	# 임시 temp 디렉터리 생성 및 클리어
+	folder = Dir.tmpdir() + "/AppSealing/" + SecureRandom.hex + "/"
+	#folder = '/Users/puzznic/Downloads/tmp/'
+
+	puts "\n[Working Directory] = " + folder
+
+	FileUtils.mkdir_p folder
+	system( "rm -rf " + folder + "*" )
+
+	# ipa 압축 해제
+	system( 'unzip -q "' + ARGV[0] + '" -d ' + folder + "Package/" );
+	app = Dir[folder + "Package/Payload/*"][0]	# app name
+
+	if !File.exist?( app.to_s + "/_CodeSignature/CodeResources" ) then
+		puts ".\n.\nInvalid IPA file has passed to an argument, check your IPA file and try again.\n.\n.\n"
+		exit( false )
+	end
+
+	puts "\n\n1. Payload has extracted from the IPA ..."
+	# URL scheme 변경
+	if ARGV[1] != nil then
+		puts "\n --> Changing URL Scheme to : " + ARGV[1].to_s
+		info_plist = ""
+		begin
+			file = File.open( app + "/Info.plist" )
+			urltype = false
+			urlscheme = false
+			changed = false
+			file.each_line do |line|
+				sline = line.strip
+				if !changed and sline.start_with?( "<key>CFBundleURLTypes</key>" )
+					urltype = true
+				end
+				if !changed and urltype and sline.start_with?( "<key>CFBundleURLSchemes</key>" )
+					urltype = false
+					urlscheme = true
+				end
+				if !changed and urlscheme and sline.start_with?( "<string>" )
+					urlscheme = false
+					changed = true
+					info_plist += ( "\t\t\t\t<string>" + ARGV[1] + "</string>\r\n" )
+					next
+				end
+				info_plist += line				
+			end
+			file.close
+			file = File.open( app + "/Info.plist", "w+b" )
+			file.write info_plist
+		rescue => e
+			puts ".\n.\nProblem has occurred while changing URL scheme, please change it manually.\n.\n.\n"
+			exit( false )
+		ensure
+			file.close unless file.nil?
+	
+		end
+	end
+
+	#........................................................................................
+	# [Step 2] AppSealing 서버로 부터 SKB 키 받아 오기
+
+	puts "\n2. Trying to receive encryption key from AppSealing server ..."
+
+	host = $baseURL + "v3/common/skb/key/generator"
+	uri = URI( host )
+	request = Net::HTTP::Get.new( uri )
+	begin
+		response = Net::HTTP.start( uri.host, uri.port, :use_ssl => uri.scheme == 'https' ) do |http|
+		    http.request( request )
+		end
+		# 암호화 키 및 Exported 키 추출
+		$plainKey = JSON.parse( response.body )['SKB_KEY']['plainKey']
+		$exportedKey = JSON.parse( response.body )['SKB_KEY']['exportedKey']
+	rescue => e
+		puts ".\n.\nCannot connect to AppSealing server or bad response, check your network status and try again.\n[Error] " + e.to_s + "\nIf this error occurs continuously, contact AppSealing Help Center.\n.\n.\n"
+		exit( false )
+	end
+	puts "\n3. Successfully received encryption key ..."
+	$current_step = 3
+
+
+	#........................................................................................
+	# [Step 3] license 신규 포맷이고 암호화가 되지 않았을 경우 암호화 진행	
+
+	$sdk_version = "1.0.0.0"
+	$iv = SecureRandom.hex( 16 )		# iv 값은 랜덤으로 생성하여 사용하고 genesis에 저장한다
+
+	if File.exist?( app.to_s + "/appsealing.lic" ) then
+		encrypt_license_file( app.to_s + "/appsealing.lic" )
+	end
+
+
+	#........................................................................................
+	# [Step 4] 앱 서명에 사용된 인증서 정보를 읽어 genesis에 추가
+
+	sign_app_payload( app, folder, true )
+
+	current_mode = 'none'
+	cert_info =
+	{
+		'subject' => "",
+		'issuer' => "",
+		'serial' => "",
+		'pubkey' => "",
+		'valid_from' => "",
+		'valid_to' => "",
+		'domains' => ""
+	}
+
+	modified_entitlement = ""
+	file = File.open( folder + "entitlements.plist" )
+	file.each_line do |line|
+		modified_entitlement += line
+		if line.strip.start_with?( '<key>application-identifier</key>' ) then
+			current_mode = 'app_id'
+			next
+		end
+		if line.strip.start_with?( '<key>com.apple.developer.team-identifier</key>' ) then
+			current_mode = 'team_id'
+			next
+		end
+		if line.strip.start_with?( '<key>com.apple.developer.associated-domains</key>' ) then
+			current_mode = 'domains'
+			next
+		end
+		if current_mode != 'none' and line.strip.start_with?( '<string>' ) then
+			cert_info[current_mode] = line.strip.gsub( '<string>', '' ).gsub( '</string>', '' )
+			current_mode = 'none'
+		end
+	end
+	file.close unless file.nil?
+
+	# app의 bundle ID 추출
+	system( "osascript -e 'id of app \"" + app + "\"' > " + folder + "bundle_id" )
+
+	$bundle_id = cert_info['app_id']
+	file = File.open( folder + "bundle_id" )
+	file.each_line do |line|
+		$bundle_id = line.strip
+	end
+	file.close unless file.nil?	
+
+	# app_id에 wildcard가 포함되어 있을 경우 bundle ID로 대체
+	if cert_info['app_id'].end_with?( '.*' )
+		old_app_id = cert_info['app_id']
+		cert_info['app_id'] = cert_info['team_id'] + '.' + $bundle_id
+
+		# wildcard가 제거된 bundle ID로 대체
+		modified_entitlement.sub!( '<string>' + old_app_id + '</string>', '<string>' + cert_info['app_id'] + '</string>' )
+		puts "  ==> Application ID replaced : " + old_app_id + " >> " + cert_info['app_id']
+				
+		begin
+			entitlement = File.open( folder + "entitlements.plist", "w+" )
+			entitlement.write modified_entitlement
+		rescue => e
+			puts ".\n.\nProblem has occurred while modifying entitlement.plist, please try again.\n[Error] " + e.to_s + "\nIf this error occurs continuously, contact AppSealing Help Center.\n.\n.\n"
+			exit( false )
+		ensure
+			entitlement.close unless entitlement.nil?
+		end
+	end
+
+	# associated domains 태그의 값이 *인 경우 DistributionSummary.plist 파일에서 해당 값을 가져와 대채
+	if cert_info['domains'].to_s == '*'
+
+		# DistributionSummary.plist 파일 열기
+		pn = Pathname.new( ARGV[0].to_s )
+		dist_summary = pn.dirname.to_s + Pathname::SEPARATOR_LIST + 'DistributionSummary.plist'
+		begin
+			current_mode = 'none'
+			domains = ""
+			file = File.open( dist_summary )
+			file.each_line do |line|
+				if line.strip.start_with?( '<key>com.apple.developer.associated-domains</key>' ) then
+					current_mode = 'domains'
+					next
+				end
+				if current_mode == 'domains' then
+					domains += line
+				end
+				if current_mode == 'domains' and line.strip.start_with?( '</array>' ) then
+					current_mode = 'none'
+					break
+				end
+			end
+			cert_info['domains'] = domains.strip
+		rescue => e
+			puts ".\n.\nProblem has occurred while opening 'DistributionSummary.plist' file in your IPA exported folder.\n[Error] " + e.to_s + "\nYou need 'DistributionSummary.plist' file when you use associated domains entitlement feature, if there is no such file in your IPA exported folder please retry to export IPA.\n.\n.\n"
+			exit( false )
+		ensure
+			file.close unless file.nil?	
+		end
+
+		# wildcard가 제거된 associated domains로 대체
+		modified_entitlement.sub!( '<string>*</string>', cert_info['domains'] )
+		if cert_info['domains'] == '' then
+			modified_entitlement.sub!( '<key>com.apple.developer.associated-domains</key>', '' )
+		else
+			puts "  ==> Associated domains repaired : * >> " + cert_info['domains']
+		end
+				
+		begin
+			entitlement = File.open( folder + "entitlements.plist", "w+" )
+			entitlement.write modified_entitlement
+		rescue => e
+			puts ".\n.\nProblem has occurred while modifying entitlement.plist, please try again.\n[Error] " + e.to_s + "\nIf this error occurs continuously, contact AppSealing Help Center.\n.\n.\n"
+			exit( false )
+		ensure
+			entitlement.close unless entitlement.nil?
+		end
+	end	
+
+	
+	#........................................................................................
+	# [Step 4] hermes bytecode(main.jsbuncle) 파일이 있을 경우 서버를 통해 암호화 진행
+
+	if File.exist?( app.to_s + "/main.jsbundle" ) then
+		#encrypt_javascript_bytecode( app )
+	end
+
+	
+	#........................................................................................
+	# [Step 5] 변경된 파일이 있을 수 있으므로 app을 1차 재서명
+
+	$current_step += 1
+	puts "\n" + $current_step.to_s + ". Codesigning your app using certificate used to sign your IPA ..."
+	sign_app_payload( app, folder, false )
+
+
+	#........................................................................................
+	# [Step 6] 인증서 정보 추출
+
+	file = File.open( folder + "certificate.txt" )
+	file.each_line do |line|
+		if line.start_with?( 'subject=' ) then
+			current_mode = 'subject'
+			next
+		end
+		if line.start_with?( 'issuer=' ) then
+			current_mode = 'issuer'
+			next
+		end
+		if line.start_with?( 'serial=' ) then
+			cert_info['serial'] = line.split( '=' )[1].strip
+			next
+		end
+		if line.start_with?( 'notBefore=' ) then
+			cert_info['valid_from'] = line.split( '=' )[1].strip
+			next
+		end
+		if line.start_with?( 'notAfter=' ) then
+			cert_info['valid_to'] = line.split( '=' )[1].strip
+			next
+		end
+		if line.start_with?( '-----BEGIN PUBLIC KEY-----' ) then
+			current_mode = 'pubkey'
+			next
+		end
+		if line.start_with?( '-----END PUBLIC KEY-----' ) then
+			current_mode = 'none'
+			next
+		end
+
+		# 'Subject' / 'Issuer' 문자열 구성
+		if current_mode == 'subject' or current_mode == 'issuer' then
+			key = line.split( '=' )[0].strip
+			value = line.split( '=' )[1].strip	
+			if key == 'userId' then
+				cert_info[current_mode] += ( "/UID=" + value )
+			end
+			if key == 'commonName' then
+				cert_info[current_mode] += ( "/CN=" + value )
+			end
+			if key == 'organizationalUnitName' then
+				cert_info[current_mode] += ( "/OU=" + value )
+			end
+			if key == 'organizationName' then
+				cert_info[current_mode] += ( "/O=" + value )
+			end
+			if key == 'countryName' then
+				cert_info[current_mode] += ( "/C=" + value )
+			end
+		end
+
+		# 'Public Key' 문자열 구성
+		if current_mode == 'pubkey' then
+			cert_info[current_mode] += line.strip
+		end
+	end
+	file.close unless file.nil?
+
+	certificate = ""
+	certificate += ( "##$##&AI:" + cert_info['app_id'] + "\n" )
+	certificate += ( "##$##&TI:" + cert_info['team_id'] + "\n" )
+	certificate += ( "##$##&SJ:" + cert_info['subject'] + "\n" )
+	certificate += ( "##$##&IS:" + cert_info['issuer'] + "\n" )
+	certificate += ( "##$##&SN:" + cert_info['serial'] + "\n" )
+	certificate += ( "##$##&PK:" + cert_info['pubkey'] + "\n" )
+	certificate += ( "##$##&VF:" + cert_info['valid_from'] + "\n" )
+	certificate += ( "##$##&VT:" + cert_info['valid_to'] + "\n" )
+
+
+	#........................................................................................
+	# [Step 5] Payload/app/_CodeSignature/CodeResources 파일 읽기
+
+	$current_step += 1
+	puts "\n" + $current_step.to_s + ". Generating app integrity/certificate snapshot ..."
+	snapshot = certificate + generate_hash_snapshot( app.to_s + "/_CodeSignature/CodeResources" )
+
+
+	#........................................................................................
+	# [Step 7] snapshot을 AES로 암호화
+
+	$current_step += 1
+	puts "\n" + $current_step.to_s + ". Encrypting app integrity/certificate snapshot ..."
+
+	aes = OpenSSL::Cipher::AES.new( "128-CTR" )
+	aes.encrypt
+	aes.key = [$plainKey].pack( 'H*' )
+	aes.iv = [$iv].pack( 'H*' )
+	encrypted = aes.update( snapshot ) + aes.final
+
+
+	#........................................................................................
+	# [Step 8] 암호화 된 snapshot을 genesis 파일에 exportedKey와 함께 기록
+
+	$current_step += 1
+	puts "\n" + $current_step.to_s + ". Inserting app integrity/certificate snapshot into IPA ..."
+	begin
+		genesis = File.open( app + "/genesis", "w+b" )
+		genesis.write [$iv].pack( 'H*' )
+		genesis.write [$exportedKey].pack( 'H*' )
+		genesis.write encrypted
+	rescue => e
+		puts ".\n.\nProblem has occurred while storing integrity-snapshot of your app, please try again.\n[Error] " + e.to_s + "\nIf this error occurs continuously, contact AppSealing Help Center.\n.\n.\n"
+		exit( false )
+	ensure
+		genesis.close unless genesis.nil?
+	end
+
+	#........................................................................................
+	# [Step 9] 파라미터로 넘겨진 IPA에서 certificate / entitlement 를 추출하여 codesign 진행
+
+	$current_step += 1
+	puts "\n" + $current_step.to_s + ". Codesigning your app using certificate used to sign your IPA ..."
+	sign_app_payload( app, folder, false )
+
+
+	#........................................................................................
+	# [Step 10] IPA로 묶음
+
+	$current_step += 1
+	puts "\n" + $current_step.to_s + ". Rebuilding & re-sigining IPA ..."
+	ipa = '"' + ARGV[0] + '_Resigned.ipa"'
+	File.delete( ipa ) if File.exist?( ipa )
+	
+	ipa = File.basename( ARGV[0] ) + "_Resigned.ipa"
+	system( 'cd ' + folder + 'Package;zip -qr "' + ipa + '" ./' )
+	system( 'mv "' + folder + "Package/" + ipa + '" "' + ARGV[0] + '"' )
+	system( "rm -rf " + folder + "*;rmdir " + folder )
+	
+	puts "\n\n>>> All processes have done successfully .......\n\n\n"
+end

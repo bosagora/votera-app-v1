@@ -116,7 +116,7 @@ const UpdateNode = ({ route, navigation }: CreateNavProps<'UpdateNode'>) => {
                 <Text style={{ lineHeight: 23, marginTop: 13 }}>
                     - {getString(`해당 노드의 주소와 `)}
                     <Text style={[globalStyle.btext, { color: themeContext.color.primary }]}>40,000 BOA</Text>
-                    {getString(` 이상 보유하고 있는지 확인하시고 인증해 주시기 바랍니다.`)}
+                    {getString(` 이상 보유하고 있는지 확인하시고 인증해 주시기 바랍니다&#46;`)}
                 </Text>
             </View>
             <View style={{ flex: 1, justifyContent: 'center' }}>

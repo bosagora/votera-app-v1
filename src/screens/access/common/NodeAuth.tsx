@@ -45,7 +45,7 @@ const NodeAuth = (props: AuthProps) => {
                 dispatch(
                     ActionCreators.snackBarVisibility({
                         visibility: true,
-                        text: getString('인증이 정상적으로 처리되지 않았습니다. 코드 확인후 다시 시도해주세요!'),
+                        text: getString('인증이 정상적으로 처리되지 않았습니다&#46; 코드 확인후 다시 시도해주세요!'),
                     }),
                 );
             }

@@ -2815,17 +2815,17 @@
   integrity sha512-rk4sWFsmtOw8oyx8SD3KSvawwaK7gRBSEIy2TAwURyGt+3TizssXP1r8nx3zY+R7v2vYYHXZ+k2/GULAT/bcaQ==
 
 "@react-native-firebase/app@^11.2.0":
-  version "11.4.1"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-11.4.1.tgz#42d5b8ff0b8e17398e2d1b65ca698b9990a76bcf"
-  integrity sha512-RzG3kGzKwO/Ets3S4XxAoki4GhzaHRVrnUDyr7U1zOL46xqOMGD7MKTmpYBa9qzh5GOz3aQwlRvu1yRhPHNGKA==
+  version "11.5.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-11.5.0.tgz#cc7656d8bd580ddf63676774c5f4e73af3652c9c"
+  integrity sha512-Jz5CBhqkybxHjTFr5V0K+Jq2YivzPbu9exSze61/z1zSaIfBhR4G38wmHk44VWAl+PEX8GaYy9yfT69tLiCERA==
   dependencies:
     opencollective-postinstall "^2.0.1"
     superstruct "^0.6.2"
 
 "@react-native-firebase/messaging@^11.2.0":
-  version "11.4.1"
-  resolved "https://registry.yarnpkg.com/@react-native-firebase/messaging/-/messaging-11.4.1.tgz#c145b237e4b4e5cffa4a5ab7f8b6a765ad2ca867"
-  integrity sha512-PZE7lU0ywR+0Fj98RxBEhQcz5Mo75kuXvMW8h0p+l6byVmb94h72uW42v/SBdI0qTcw5glkTr2pHkDYDKdmHeg==
+  version "11.5.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/messaging/-/messaging-11.5.0.tgz#724a65683a23e40fd4a36553198f27227cfe78fd"
+  integrity sha512-bjsoJByiNtikNLCf5RMmUdIj3uH8Uf0eeyM9PdqfNRB1mtVaYrU8AmXnzbSd5SqJ/sxqwyZVuxzWNEJrcOnhZw==
 
 "@react-native/assets@1.0.0":
   version "1.0.0"
@@ -3013,6 +3013,11 @@
   integrity sha512-2S6IuBRhqUnH1/AUx9k8KWtY3Esg4eqri946MnxTG5HwehF1S5mqLln8fcyMiuQkY72p2gH3W+rIPqp5li0LyQ==
   dependencies:
     "@types/node" "*"
+
+"@types/i18n-js@^3.8.2":
+  version "3.8.2"
+  resolved "https://registry.yarnpkg.com/@types/i18n-js/-/i18n-js-3.8.2.tgz#957a3fa268124d09e3b3b34695f0184118f4bc4f"
+  integrity sha512-F+AuFCjllE1A0W/YUxJB13q2t7cWITMqXOTXQ/InfXxxT8nXrrqL7s/8Pv6XThGjFPemukElwk6QlMOKCEg7eQ==
 
 "@types/isomorphic-fetch@^0.0.35":
   version "0.0.35"
