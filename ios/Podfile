@@ -29,5 +29,5 @@ target 'voteraclient' do
   end
 
   # pod 'RNFBMessaging', :path => '../node_modules/@react-native-firebase/messaging'
-  pod 'Firebase/Messaging'
+  # pod 'Firebase/Messaging'
 end
