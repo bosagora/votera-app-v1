@@ -1,4 +1,4 @@
-package kr.votera.app;
+package io.bosagora.votera;
 
 import android.os.Bundle;
 

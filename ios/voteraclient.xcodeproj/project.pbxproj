@@ -448,7 +448,7 @@
 					"-lStaticAppSec_Debug",
 					"-L$(PROJECT_DIR)/AppSealingSDK/Libraries",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = kr.votera.app;
+				PRODUCT_BUNDLE_IDENTIFIER = io.bosagora.votera;
 				PRODUCT_NAME = Votera;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "voteraclient/voteraclient-Bridging-Header.h";
@@ -560,7 +560,7 @@
 					"-lStaticAppSec",
 					"-L$(PROJECT_DIR)/AppSealingSDK/Libraries",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = kr.votera.app;
+				PRODUCT_BUNDLE_IDENTIFIER = io.bosagora.votera;
 				PRODUCT_NAME = Votera;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "voteraclient/voteraclient-Bridging-Header.h";

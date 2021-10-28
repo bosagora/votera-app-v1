@@ -25,7 +25,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>kr.votera.app</string>
+				<string>io.bosagora.votera</string>
 			</array>
 		</dict>
 	</array>

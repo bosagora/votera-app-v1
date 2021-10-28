@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "kr.votera.app",
+  "applicationId": "io.bosagora.votera",
   "variantName": "processReleaseResources",
   "elements": [
     {
