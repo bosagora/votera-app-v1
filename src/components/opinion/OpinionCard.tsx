@@ -98,7 +98,7 @@ const Reply = (props: ReplyProps) => {
                             status: Enum_Post_Status.Open,
                             content: [
                                 {
-                                    __typename: 'ComponentPostCommentOnActivity',
+                                    __typename: 'ComponentPostCommentOnPost',
                                     text,
                                 },
                             ],
