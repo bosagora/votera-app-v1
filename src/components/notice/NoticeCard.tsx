@@ -192,7 +192,7 @@ const NoticeCard = (props: NoticeCardProps) => {
                             status: Enum_Post_Status.Open,
                             content: [
                                 {
-                                    __typename: 'ComponentPostCommentOnActivity',
+                                    __typename: 'ComponentPostCommentOnPost',
                                     text,
                                 },
                             ],

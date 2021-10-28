@@ -4,17 +4,17 @@ import { walletFeeURL, walletDataURL, walletVoteURL } from '../../config/ServerC
 import { getProposalVoteResultURL } from '~/utils/agoraconf';
 
 export async function openProposalFeeLink(linkData: LinkDataWithProposalFee) {
-    const redirectUrl = `${walletFeeURL}?linkData=${encodeURIComponent(JSON.stringify(linkData))}`;
+    const redirectUrl = `${walletFeeURL}${encodeURIComponent(JSON.stringify(linkData))}`;
     return await Linking.openURL(redirectUrl);
 }
 
 export async function openProposalDataLink(linkData: LinkDataWithProposalData) {
-    const redirectUrl = `${walletDataURL}?linkData=${encodeURIComponent(JSON.stringify(linkData))}`;
+    const redirectUrl = `${walletDataURL}${encodeURIComponent(JSON.stringify(linkData))}`;
     return await Linking.openURL(redirectUrl);
 }
 
 export async function openProposalVoteLink(linkData: LinkDataWithVoteData) {
-    const redirectUrl = `${walletVoteURL}?linkData=${encodeURIComponent(JSON.stringify(linkData))}`;
+    const redirectUrl = `${walletVoteURL}${encodeURIComponent(JSON.stringify(linkData))}`;
     return await Linking.openURL(redirectUrl);
 }
 
