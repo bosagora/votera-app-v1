@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>kr.votera.app</string>
+	<string>io.bosagora.votera</string>
 	<key>PROJECT_ID</key>
 	<string>votera-2c754</string>
 	<key>STORAGE_BUCKET</key>

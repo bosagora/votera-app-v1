@@ -1,4 +1,4 @@
-package kr.votera.app.generated;
+package io.bosagora.votera.generated;
 
 import java.util.Arrays;
 import java.util.List;

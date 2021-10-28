@@ -136,7 +136,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'kr.votera.app'
+        applicationId 'io.bosagora.votera'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 18
